@@ -1,0 +1,139 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  password  String
+  firstName String
+  lastName  String
+  role      AdminRole @default(STAFF)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("admins")
+}
+
+model Room {
+  id           String        @id @default(cuid())
+  roomNumber   String        @unique
+  type         RoomType
+  description  String
+  price        Float
+  capacity     Int
+  amenities    String[]
+  images       String[]
+  isAvailable  Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  reservations Reservation[]
+
+  @@map("rooms")
+}
+
+model Reservation {
+  id               String            @id @default(cuid())
+  roomId           String
+  guestEmail       String
+  guestFirstName   String
+  guestLastName    String
+  guestPhone       String?
+  checkIn          DateTime
+  checkOut         DateTime
+  guests           Int
+  totalPrice       Float
+  status           ReservationStatus @default(PENDING)
+  paymentStatus    PaymentStatus     @default(PENDING)
+  paymentIntentId  String?
+  specialRequests  String?
+  accessToken      String            @unique
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  lastStatusChange DateTime          @default(now())
+  notes            String?
+  emailReminders   EmailReminder[]
+  payments         Payment[]
+  room             Room              @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@map("reservations")
+}
+
+model Payment {
+  id                    String        @id @default(cuid())
+  reservationId         String
+  amount                Float
+  currency              String        @default("usd")
+  stripePaymentIntentId String
+  status                PaymentStatus @default(PENDING)
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  failureReason         String?
+  refundAmount          Float?
+  webhookEventId        String?
+  reservation           Reservation   @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+model EmailReminder {
+  id            String         @id @default(cuid())
+  reservationId String
+  emailType     EmailType
+  scheduledFor  DateTime
+  sentAt        DateTime?
+  status        ReminderStatus @default(PENDING)
+  attempts      Int            @default(0)
+  lastError     String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  reservation   Reservation    @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+
+  @@map("email_reminders")
+}
+
+enum EmailType {
+  CHECKIN_REMINDER_24H
+  CHECKIN_REMINDER_2H
+  CHECKOUT_REMINDER
+}
+
+enum ReminderStatus {
+  PENDING
+  SENT
+  FAILED
+  CANCELLED
+}
+
+enum AdminRole {
+  STAFF
+  ADMIN
+}
+
+enum RoomType {
+  STANDARD
+  DELUXE
+  SUITE
+  PRESIDENTIAL
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  CHECKED_IN
+  CHECKED_OUT
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
