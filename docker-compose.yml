@@ -25,7 +25,7 @@ services:
     restart: always
     environment:
       DATABASE_URL: postgresql://postgres:password@postgres:5432/hotel_system?schema=public
-      NODE_ENV: development
+      NODE_ENV: production
       PORT: 4000
       JWT_SECRET: your-super-secret-jwt-key-change-in-production
     ports:
@@ -36,7 +36,7 @@ services:
     volumes:
       - ./backend:/app
       - /app/node_modules
-    command: npm run dev
+    command: sh -c "npm install && npm run build && npm start"
 
   frontend:
     build:
@@ -44,7 +44,8 @@ services:
       dockerfile: Dockerfile
     restart: always
     environment:
-      NEXT_PUBLIC_GRAPHQL_URL: http://localhost:4000/graphql
+      NODE_ENV: production
+      NEXT_PUBLIC_GRAPHQL_URL: https://peterlehocky.site/graphql
       NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_your_stripe_publishable_key
     ports:
       - "3000:3000"
@@ -54,7 +55,7 @@ services:
       - ./frontend:/app
       - /app/node_modules
       - /app/.next
-    command: npm run dev
+    command: sh -c "npm install && npm run build && npm start"
 
 volumes:
   postgres_data:
