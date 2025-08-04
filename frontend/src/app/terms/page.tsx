@@ -41,7 +41,7 @@ export default function Terms() {
               </h2>
               <div className="text-secondary-700 space-y-4">
                 <p>
-                  Tieto obchodné podmienky upravujú vzťah medzi Luxury Hotel (ďalej len "hotel") 
+                  Tieto obchodné podmienky upravujú vzťah medzi Luxury Hotel (ďalej len &quot;hotel&quot;) 
                   a hosťami využívajúcimi naše služby. Použitím našej webovej stránky a rezervačného 
                   systému súhlasíte s týmito podmienkami.
                 </p>

@@ -3,7 +3,6 @@
 import { UseFormRegister, FieldErrors } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { sanitizeString, sanitizeEmail, sanitizePhone, sanitizeTextarea } from '@/lib/utils';
 
 interface CheckoutFormData {
   guestFirstName: string;

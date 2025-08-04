@@ -23,7 +23,6 @@ export function RoomList({
   checkOut, 
   guests, 
   onAddToCart, 
-  cartItems,
   isLoading,
   isInCart = () => false,
   onCartAdded

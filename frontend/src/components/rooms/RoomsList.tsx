@@ -18,7 +18,6 @@ export function RoomsList({
   rooms,
   filteredRooms,
   loading,
-  cartItems,
   onViewDetails,
   onAddToCart,
   isInCart = () => false,

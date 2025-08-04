@@ -14,7 +14,6 @@ import DatePicker from 'react-datepicker';
 import { 
   ArrowLeftIcon,
   LogOutIcon,
-  CalendarIcon,
   UserIcon,
   HotelIcon,
   SaveIcon,
@@ -176,7 +175,9 @@ export default function NewReservation() {
                   Späť na rezervácie
                 </Button>
               </Link>
-              <h1 className="text-2xl font-bold text-secondary-900">Nová rezervácia</h1>
+              <h1 className="text-2xl font-bold text-secondary-900">
+                Nová rezervácia
+              </h1>
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-secondary-600">
@@ -198,9 +199,11 @@ export default function NewReservation() {
             <div className="bg-white p-6 rounded-lg shadow-sm">
               <div className="flex items-center mb-4">
                 <UserIcon className="h-5 w-5 text-info-500 mr-2" />
-                <h2 className="text-lg font-semibold text-secondary-900">Informácie o hosťovi</h2>
+                <h2 className="text-lg font-semibold text-secondary-900">
+                  Informácie o hosťovi
+                </h2>
               </div>
-              
+
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -208,7 +211,9 @@ export default function NewReservation() {
                       Krstné meno *
                     </label>
                     <Input
-                      {...register('guestFirstName', { required: 'Krstné meno je povinné' })}
+                      {...register('guestFirstName', {
+                        required: 'Krstné meno je povinné',
+                      })}
                       error={errors.guestFirstName?.message}
                       placeholder="John"
                     />
@@ -218,7 +223,9 @@ export default function NewReservation() {
                       Priezvisko *
                     </label>
                     <Input
-                      {...register('guestLastName', { required: 'Priezvisko je povinné' })}
+                      {...register('guestLastName', {
+                        required: 'Priezvisko je povinné',
+                      })}
                       error={errors.guestLastName?.message}
                       placeholder="Doe"
                     />
@@ -249,7 +256,9 @@ export default function NewReservation() {
                   </label>
                   <Input
                     type="tel"
-                    {...register('guestPhone', { required: 'Telefónne číslo je povinné' })}
+                    {...register('guestPhone', {
+                      required: 'Telefónne číslo je povinné',
+                    })}
                     error={errors.guestPhone?.message}
                     placeholder="+1 (555) 123-4567"
                   />
@@ -266,7 +275,10 @@ export default function NewReservation() {
                     {...register('numberOfGuests', {
                       required: 'Počet hostí je povinný',
                       min: { value: 1, message: 'Minimálne 1 hosť je povinný' },
-                      max: { value: 10, message: 'Maximálne 10 hostí je povolené' },
+                      max: {
+                        value: 10,
+                        message: 'Maximálne 10 hostí je povolené',
+                      },
                     })}
                     error={errors.numberOfGuests?.message}
                   />
@@ -278,7 +290,9 @@ export default function NewReservation() {
             <div className="bg-white p-6 rounded-lg shadow-sm">
               <div className="flex items-center mb-4">
                 <HotelIcon className="h-5 w-5 text-green-500 mr-2" />
-                <h2 className="text-lg font-semibold text-secondary-900">Detaily rezervácie</h2>
+                <h2 className="text-lg font-semibold text-secondary-900">
+                  Detaily rezervácie
+                </h2>
               </div>
 
               <div className="space-y-4">
@@ -290,7 +304,9 @@ export default function NewReservation() {
                     </label>
                     <DatePicker
                       selected={checkInDate}
-                      onChange={(date: Date) => setCheckInDate(date)}
+                      onChange={(date: Date | null) => {
+                        if (date) setCheckInDate(date);
+                      }}
                       minDate={getMinCheckInDate()}
                       className="w-full px-3 py-2 border border-secondary-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-info-500"
                       dateFormat="MMM dd, yyyy"
@@ -302,7 +318,9 @@ export default function NewReservation() {
                     </label>
                     <DatePicker
                       selected={checkOutDate}
-                      onChange={(date: Date) => setCheckOutDate(date)}
+                      onChange={(date: Date | null) => {
+                        if (date) setCheckOutDate(date);
+                      }}
                       minDate={getMinCheckOutDate(checkInDate)}
                       className="w-full px-3 py-2 border border-secondary-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-info-500"
                       dateFormat="MMM dd, yyyy"
@@ -316,22 +334,29 @@ export default function NewReservation() {
                     Izba *
                   </label>
                   {roomsLoading ? (
-                    <div className="text-sm text-secondary-500">Načítavam izby...</div>
+                    <div className="text-sm text-secondary-500">
+                      Načítavam izby...
+                    </div>
                   ) : (
                     <select
-                      {...register('roomId', { required: 'Prosím vyberte izbu' })}
+                      {...register('roomId', {
+                        required: 'Prosím vyberte izbu',
+                      })}
                       className="w-full px-3 py-2 border border-secondary-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-info-500"
                     >
                       <option value="">Vyberte izbu...</option>
                       {availableRooms.map((room) => (
                         <option key={room.id} value={room.id}>
-                          Izba {room.roomNumber} - {room.type} ({formatCurrency(room.price)}/noc)
+                          Izba {room.roomNumber} - {room.type} (
+                          {formatCurrency(room.price)}/noc)
                         </option>
                       ))}
                     </select>
                   )}
                   {errors.roomId && (
-                    <p className="mt-1 text-sm text-error-600">{errors.roomId.message}</p>
+                    <p className="mt-1 text-sm text-error-600">
+                      {errors.roomId.message}
+                    </p>
                   )}
                 </div>
 
@@ -354,14 +379,21 @@ export default function NewReservation() {
           {/* Booking Summary */}
           {selectedRoom && (
             <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h3 className="text-lg font-semibold text-secondary-900 mb-4">Súhrn rezervácie</h3>
+              <h3 className="text-lg font-semibold text-secondary-900 mb-4">
+                Súhrn rezervácie
+              </h3>
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span>Izba {selectedRoom.roomNumber} ({selectedRoom.type})</span>
+                  <span>
+                    Izba {selectedRoom.roomNumber} ({selectedRoom.type})
+                  </span>
                   <span>{formatCurrency(selectedRoom.price)}/noc</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>{nights} {nights === 1 ? 'noc' : nights < 5 ? 'noci' : 'nocí'}</span>
+                  <span>
+                    {nights}{' '}
+                    {nights === 1 ? 'noc' : nights < 5 ? 'noci' : 'nocí'}
+                  </span>
                   <span>{formatCurrency(selectedRoom.price * nights)}</span>
                 </div>
                 <div className="border-t pt-2 flex justify-between font-semibold">

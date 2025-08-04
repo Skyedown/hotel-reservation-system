@@ -41,7 +41,7 @@ export default function Privacy() {
               </h2>
               <div className="text-secondary-700 space-y-4">
                 <p>
-                  Luxury Hotel ("my", "náš", "hotel") sa zaväzuje chrániť súkromie našich hostí 
+                  Luxury Hotel (&quot;my&quot;, &quot;náš&quot;, &quot;hotel&quot;) sa zaväzuje chrániť súkromie našich hostí 
                   a návštevníkov webovej stránky. Tieto zásady ochrany súkromia vysvetľujú, 
                   ako zbierame, používame, ukladáme a chránime vaše osobné údaje v súlade s 
                   Nariadením o ochrane osobných údajov (GDPR) EU 2016/679.

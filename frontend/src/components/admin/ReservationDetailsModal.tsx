@@ -91,12 +91,12 @@ export function ReservationDetailsModal({ isOpen, onClose, reservation, bookingG
               <div>
                 <div className="text-sm text-secondary-600 mb-2">Rezervované izby ({reservations.length})</div>
                 <div className="space-y-2">
-                  {reservations.map((res, index) => (
+                  {reservations.map((res) => (
                     <div key={res.id} className="bg-white p-3 rounded border border-secondary-200">
                       <div className="flex justify-between items-center">
                         <div>
                           <div className="font-medium text-secondary-900">
-                            Izba {res.room.roomNumber} - {res.room.type}
+                            Izba {res.room?.roomNumber ?? 'N/A'} - {res.room?.type ?? 'N/A'}
                           </div>
                           <div className="text-sm text-secondary-600">
                             {res.guests} {res.guests === 1 ? 'hosť' : 'hostia'} • {formatCurrency(res.totalPrice)}
@@ -104,7 +104,7 @@ export function ReservationDetailsModal({ isOpen, onClose, reservation, bookingG
                         </div>
                         <div className="text-right">
                           <div className="text-sm text-secondary-600">Kapacita</div>
-                          <div className="font-medium text-secondary-900">{res.room.capacity}</div>
+                          <div className="font-medium text-secondary-900">{res.room?.capacity ?? 'N/A'}</div>
                         </div>
                       </div>
                     </div>
@@ -143,7 +143,7 @@ export function ReservationDetailsModal({ isOpen, onClose, reservation, bookingG
               <div>
                 <div className="text-sm text-secondary-600">Izba</div>
                 <div className="font-medium text-secondary-900">
-                  Izba {reservation.room.roomNumber} - {reservation.room.type}
+                  Izba {reservation.room?.roomNumber ?? 'N/A'} - {reservation.room?.type ?? 'N/A'}
                 </div>
               </div>
               <div>
@@ -207,8 +207,8 @@ export function ReservationDetailsModal({ isOpen, onClose, reservation, bookingG
               </div>
               <div className="font-medium text-secondary-900">
                 {isMultiRoom ? 
-                  formatCurrency(reservations.reduce((sum, res) => sum + res.room.price, 0) / reservations.length) :
-                  formatCurrency(reservation.room.price)
+                  formatCurrency(reservations.reduce((sum, res) => sum + (res.room?.price ?? 0), 0) / reservations.length) :
+                  formatCurrency(reservation.room?.price ?? 0)
                 }
               </div>
             </div>
@@ -224,11 +224,11 @@ export function ReservationDetailsModal({ isOpen, onClose, reservation, bookingG
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <div className="text-sm text-secondary-600">Vytvorené</div>
-              <div className="font-medium text-secondary-900">{formatDateTime(reservation.createdAt)}</div>
+              <div className="font-medium text-secondary-900">{formatDateTime(reservation.createdAt || '')}</div>
             </div>
             <div>
               <div className="text-sm text-secondary-600">Posledná aktualizácia</div>
-              <div className="font-medium text-secondary-900">{formatDateTime(reservation.updatedAt)}</div>
+              <div className="font-medium text-secondary-900">{formatDateTime(reservation.updatedAt || '')}</div>
             </div>
           </div>
         </div>
