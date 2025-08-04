@@ -7,9 +7,13 @@ services:
     environment:
       POSTGRES_DB: hotel_system
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-    ports:
-      - "5432:5432"
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secure_hotel_db_password_2024}
+      # Security: Disable unnecessary features
+      POSTGRES_HOST_AUTH_METHOD: md5
+      POSTGRES_INITDB_ARGS: "--auth-host=md5 --auth-local=md5"
+    # SECURITY: Remove port exposure - database should only be accessible within Docker network
+    # ports:
+    #   - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -17,6 +21,33 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - hotel_network
+    # Security: Run as non-root user
+    user: postgres
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    environment:
+      # Security: Require password authentication
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-secure_redis_password_2024}
+    # SECURITY: Remove port exposure - Redis should only be accessible within Docker network
+    # ports:
+    #   - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    command: redis-server /usr/local/etc/redis/redis.conf --requirepass ${REDIS_PASSWORD:-secure_redis_password_2024}
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - hotel_network
+    # Security: Run as non-root user
+    user: "999:999"
 
   backend:
     build:
@@ -24,19 +55,28 @@ services:
       dockerfile: Dockerfile
     restart: always
     environment:
-      DATABASE_URL: postgresql://postgres:password@postgres:5432/hotel_system?schema=public
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-secure_hotel_db_password_2024}@postgres:5432/hotel_system?schema=public
       NODE_ENV: production
       PORT: 4000
-      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      JWT_SECRET: ${JWT_SECRET:-please-change-this-jwt-secret-in-production}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-secure_redis_password_2024}
     ports:
       - "4000:4000"
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     volumes:
       - ./backend:/app
       - /app/node_modules
     command: sh -c "npm install && npm run build && npm start"
+    networks:
+      - hotel_network
 
   frontend:
     build:
@@ -46,7 +86,7 @@ services:
     environment:
       NODE_ENV: production
       NEXT_PUBLIC_GRAPHQL_URL: https://peterlehocky.site/graphql
-      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_your_stripe_publishable_key
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY:-pk_test_your_stripe_publishable_key}
     ports:
       - "3000:3000"
     depends_on:
@@ -56,6 +96,13 @@ services:
       - /app/node_modules
       - /app/.next
     command: sh -c "npm install && npm run build && npm start"
+    networks:
+      - hotel_network
 
 volumes:
   postgres_data:
+  redis_data:
+
+networks:
+  hotel_network:
+    driver: bridge
