@@ -14,7 +14,6 @@ class RedisService {
       connectTimeout: 10000,
       commandTimeout: 5000,
       enableAutoPipelining: true,
-      maxLoadingTimeout: 3000,
     });
 
     this.setupEventListeners();
@@ -55,9 +54,17 @@ class RedisService {
   }
 
   // Session Management
-  async setSession(sessionId: string, data: any, ttlSeconds: number = 3600): Promise<void> {
+  async setSession(
+    sessionId: string,
+    data: any,
+    ttlSeconds: number = 3600
+  ): Promise<void> {
     try {
-      await this.client.setex(`session:${sessionId}`, ttlSeconds, JSON.stringify(data));
+      await this.client.setex(
+        `session:${sessionId}`,
+        ttlSeconds,
+        JSON.stringify(data)
+      );
     } catch (error) {
       console.error('Error setting session:', error);
       throw error;
@@ -116,13 +123,16 @@ class RedisService {
   }
 
   // Rate Limiting
-  async incrementWithExpiry(key: string, ttlSeconds: number = 60): Promise<number> {
+  async incrementWithExpiry(
+    key: string,
+    ttlSeconds: number = 60
+  ): Promise<number> {
     try {
       const multi = this.client.multi();
       multi.incr(key);
       multi.expire(key, ttlSeconds);
       const results = await multi.exec();
-      return results?.[0]?.[1] as number || 0;
+      return (results?.[0]?.[1] as number) || 0;
     } catch (error) {
       console.error('Error with rate limiting:', error);
       throw error;
@@ -130,21 +140,41 @@ class RedisService {
   }
 
   // Room availability caching
-  async cacheAvailableRooms(checkIn: string, checkOut: string, guests: number, rooms: any[]): Promise<void> {
+  async cacheAvailableRooms(
+    checkIn: string,
+    checkOut: string,
+    guests: number,
+    rooms: any[]
+  ): Promise<void> {
     const cacheKey = `rooms:available:${checkIn}:${checkOut}:${guests}`;
     await this.set(cacheKey, rooms, 300); // Cache for 5 minutes
   }
 
-  async getCachedAvailableRooms(checkIn: string, checkOut: string, guests: number): Promise<any[] | null> {
+  async getCachedAvailableRooms(
+    checkIn: string,
+    checkOut: string,
+    guests: number
+  ): Promise<any[] | null> {
     const cacheKey = `rooms:available:${checkIn}:${checkOut}:${guests}`;
     return await this.get(cacheKey);
   }
 
   // Reservation locks (prevent double bookings)
-  async acquireReservationLock(roomId: string, checkIn: string, checkOut: string, ttlSeconds: number = 300): Promise<boolean> {
+  async acquireReservationLock(
+    roomId: string,
+    checkIn: string,
+    checkOut: string,
+    ttlSeconds: number = 300
+  ): Promise<boolean> {
     try {
       const lockKey = `lock:reservation:${roomId}:${checkIn}:${checkOut}`;
-      const result = await this.client.set(lockKey, 'locked', 'PX', ttlSeconds * 1000, 'NX');
+      const result = await this.client.set(
+        lockKey,
+        'locked',
+        'PX',
+        ttlSeconds * 1000,
+        'NX'
+      );
       return result === 'OK';
     } catch (error) {
       console.error('Error acquiring reservation lock:', error);
@@ -152,7 +182,11 @@ class RedisService {
     }
   }
 
-  async releaseReservationLock(roomId: string, checkIn: string, checkOut: string): Promise<void> {
+  async releaseReservationLock(
+    roomId: string,
+    checkIn: string,
+    checkOut: string
+  ): Promise<void> {
     try {
       const lockKey = `lock:reservation:${roomId}:${checkIn}:${checkOut}`;
       await this.client.del(lockKey);
