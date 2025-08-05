@@ -76,6 +76,9 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_GRAPHQL_URL: https://peterlehocky.site/graphql
+        NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY:-pk_test_your_stripe_publishable_key}
     restart: always
     environment:
       NODE_ENV: production
