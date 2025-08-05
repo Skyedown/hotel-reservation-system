@@ -114,6 +114,7 @@ export declare const resolvers: {
             password: string;
             firstName: string;
             lastName: string;
+            phoneNumber: string | null;
             role: import(".prisma/client").$Enums.AdminRole;
             createdAt: Date;
             updatedAt: Date;
@@ -348,13 +349,14 @@ export declare const resolvers: {
         }>;
         deleteRoom: (_: any, { id }: any, { admin, prisma }: import("../context").Context) => Promise<boolean>;
         adminLogin: (_: any, { input }: any, { prisma }: import("../context").Context) => Promise<{
-            token: any;
+            token: string;
             admin: {
                 id: string;
                 email: string;
                 password: string;
                 firstName: string;
                 lastName: string;
+                phoneNumber: string | null;
                 role: import(".prisma/client").$Enums.AdminRole;
                 createdAt: Date;
                 updatedAt: Date;

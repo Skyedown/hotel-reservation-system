@@ -19,6 +19,12 @@ exports.roomResolvers = {
         availableRooms: async (_, { checkIn, checkOut, guests }, { prisma }) => {
             const checkInDate = new Date(checkIn);
             const checkOutDate = new Date(checkOut);
+            // Validate dates
+            if (isNaN(checkInDate.getTime()) || isNaN(checkOutDate.getTime())) {
+                throw new graphql_1.GraphQLError('Invalid date format provided', {
+                    extensions: { code: 'BAD_USER_INPUT' }
+                });
+            }
             return prisma.room.findMany({
                 where: {
                     isAvailable: true,

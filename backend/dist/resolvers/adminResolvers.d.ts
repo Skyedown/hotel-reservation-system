@@ -7,6 +7,7 @@ export declare const adminResolvers: {
             password: string;
             firstName: string;
             lastName: string;
+            phoneNumber: string | null;
             role: import(".prisma/client").$Enums.AdminRole;
             createdAt: Date;
             updatedAt: Date;
@@ -110,13 +111,14 @@ export declare const adminResolvers: {
     };
     Mutation: {
         adminLogin: (_: any, { input }: any, { prisma }: Context) => Promise<{
-            token: any;
+            token: string;
             admin: {
                 id: string;
                 email: string;
                 password: string;
                 firstName: string;
                 lastName: string;
+                phoneNumber: string | null;
                 role: import(".prisma/client").$Enums.AdminRole;
                 createdAt: Date;
                 updatedAt: Date;

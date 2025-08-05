@@ -6,6 +6,7 @@ export const typeDefs = `#graphql
     email: String!
     firstName: String!
     lastName: String!
+    phoneNumber: String
     role: AdminRole!
     createdAt: DateTime!
     updatedAt: DateTime!
