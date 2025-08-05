@@ -69,10 +69,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
-    command: sh -c "npm install && npm run build && npm start"
     networks:
       - hotel_network
 
@@ -89,11 +85,6 @@ services:
       - "3000:3000"
     depends_on:
       - backend
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-      - /app/.next
-    command: sh -c "npm install && npm run build && npm start"
     networks:
       - hotel_network
 
