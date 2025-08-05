@@ -61,22 +61,22 @@ export function GuestInfoStep({ register, errors, onNext }: GuestInfoStepProps) 
             {...register('guestPhone', { 
               required: 'Phone number is required',
               pattern: {
-                value: /^\+?[\d\s\-\(\)]+$/,
+                value: /^\+?[\d\s\-]+$/,
                 message: 'Please enter a valid phone number'
               }
             })}
             type="tel"
             className="w-full px-3 py-2 border border-secondary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-secondary-900 placeholder-secondary-500"
-            placeholder="+1 (555) 123-4567"
+            placeholder="+421 123 456 789"
             onChange={(e) => {
               let value = e.target.value.replace(/\D/g, '');
               if (value.length > 0) {
                 if (value.length <= 3) {
-                  value = `(${value}`;
+                  value = `${value}`;
                 } else if (value.length <= 6) {
-                  value = `(${value.slice(0, 3)}) ${value.slice(3)}`;
+                  value = `${value.slice(0, 3)} ${value.slice(3)}`;
                 } else {
-                  value = `(${value.slice(0, 3)}) ${value.slice(3, 6)}-${value.slice(6, 10)}`;
+                  value = `${value.slice(0, 3)} ${value.slice(3, 6)} ${value.slice(6, 10)}`;
                 }
               }
               e.target.value = value;
