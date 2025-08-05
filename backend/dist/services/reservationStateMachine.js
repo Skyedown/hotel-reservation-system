@@ -16,24 +16,15 @@ class ReservationStateMachine {
             to: client_1.ReservationStatus.CONFIRMED,
             conditions: (reservation) => reservation.paymentStatus === client_1.PaymentStatus.COMPLETED,
             actions: async (reservation) => {
-                // Set expiration for check-in (24 hours after check-in time)
-                const expiresAt = new Date(reservation.checkIn);
-                expiresAt.setHours(expiresAt.getHours() + 24);
                 await prisma.reservation.update({
                     where: { id: reservation.id },
                     data: {
-                        expiresAt,
                         lastStatusChange: new Date()
                     }
                 });
-                // Send confirmation email
-                try {
-                    await sendGridEmailService_1.sendGridEmailService.sendPaymentConfirmationEmail(reservation);
-                }
-                catch (error) {
-                    console.error(`Failed to send confirmation email for reservation ${reservation.id}:`, error);
-                }
-                console.log(`Reservation ${reservation.id} confirmed - email sent to ${reservation.guestEmail}`);
+                // Note: Payment confirmation emails are handled by the webhook service 
+                // to avoid duplicate emails for multi-room bookings
+                console.log(`Reservation ${reservation.id} confirmed via payment`);
             }
         });
         // Guest checks in
@@ -51,8 +42,7 @@ class ReservationStateMachine {
                 await prisma.reservation.update({
                     where: { id: reservation.id },
                     data: {
-                        lastStatusChange: new Date(),
-                        expiresAt: null // Remove expiration
+                        lastStatusChange: new Date()
                     }
                 });
                 console.log(`Guest checked in for reservation ${reservation.id}`);
@@ -78,8 +68,7 @@ class ReservationStateMachine {
                 await prisma.reservation.update({
                     where: { id: reservation.id },
                     data: {
-                        lastStatusChange: new Date(),
-                        expiresAt: null
+                        lastStatusChange: new Date()
                     }
                 });
                 // If payment was completed, initiate refund
@@ -107,8 +96,7 @@ class ReservationStateMachine {
                     where: { id: reservation.id },
                     data: {
                         lastStatusChange: new Date(),
-                        paymentStatus: client_1.PaymentStatus.FAILED,
-                        expiresAt: null
+                        paymentStatus: client_1.PaymentStatus.FAILED
                     }
                 });
                 // Send payment failed email
@@ -119,26 +107,6 @@ class ReservationStateMachine {
                     console.error(`Failed to send payment failed email for reservation ${reservation.id}:`, error);
                 }
                 console.log(`Payment failed for reservation ${reservation.id} - reservation cancelled`);
-            }
-        });
-        // Expire pending reservation
-        this.transitions.set('expire', {
-            from: [client_1.ReservationStatus.PENDING, client_1.ReservationStatus.CONFIRMED],
-            to: client_1.ReservationStatus.CANCELLED,
-            conditions: (reservation) => {
-                if (!reservation.expiresAt)
-                    return false;
-                return new Date() > new Date(reservation.expiresAt);
-            },
-            actions: async (reservation) => {
-                await prisma.reservation.update({
-                    where: { id: reservation.id },
-                    data: {
-                        lastStatusChange: new Date(),
-                        notes: `Expired at ${new Date().toISOString()}`
-                    }
-                });
-                console.log(`Reservation ${reservation.id} expired and cancelled`);
             }
         });
     }
@@ -205,26 +173,6 @@ class ReservationStateMachine {
             }
         }
         return available;
-    }
-    // Cleanup expired reservations (to be called by a cron job)
-    async cleanupExpiredReservations() {
-        const expiredReservations = await prisma.reservation.findMany({
-            where: {
-                expiresAt: { lt: new Date() },
-                status: { in: [client_1.ReservationStatus.PENDING, client_1.ReservationStatus.CONFIRMED] }
-            }
-        });
-        let cleanedUp = 0;
-        for (const reservation of expiredReservations) {
-            try {
-                await this.transition(reservation.id, 'expire');
-                cleanedUp++;
-            }
-            catch (error) {
-                console.error(`Failed to expire reservation ${reservation.id}:`, error);
-            }
-        }
-        return cleanedUp;
     }
 }
 exports.ReservationStateMachine = ReservationStateMachine;

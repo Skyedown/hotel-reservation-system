@@ -26,7 +26,7 @@ export declare const roomResolvers: {
             amenities: string[];
             images: string[];
             isAvailable: boolean;
-        } | null>;
+        }>;
         availableRooms: (_: any, { checkIn, checkOut, guests }: any, { prisma }: Context) => Promise<{
             id: string;
             createdAt: Date;
@@ -89,7 +89,6 @@ export declare const roomResolvers: {
             paymentIntentId: string | null;
             specialRequests: string | null;
             accessToken: string;
-            expiresAt: Date | null;
             lastStatusChange: Date;
             notes: string | null;
         }[]>;

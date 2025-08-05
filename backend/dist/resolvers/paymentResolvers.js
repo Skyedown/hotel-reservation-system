@@ -49,48 +49,69 @@ exports.paymentResolvers = {
             if (reservation.paymentStatus !== 'PENDING') {
                 throw new Error('Payment has already been processed');
             }
-            // Check if reservation has expired
-            if (reservation.expiresAt && new Date() > reservation.expiresAt) {
-                await reservationStateMachine_1.reservationStateMachine.transition(reservation.id, 'expire');
-                throw new Error('Reservation has expired');
+            // Find all related reservations (multi-room booking group)
+            let allReservations = [reservation];
+            if (reservation.paymentIntentId?.startsWith('temp_')) {
+                // This is part of a multi-room booking
+                allReservations = await prisma.reservation.findMany({
+                    where: {
+                        paymentIntentId: reservation.paymentIntentId
+                    },
+                    include: {
+                        room: true,
+                        payments: true
+                    }
+                });
             }
-            // Create payment intent with enhanced metadata and confirmation method
+            // Calculate total amount for all reservations
+            const totalAmount = allReservations.reduce((sum, res) => sum + res.totalPrice, 0);
+            const roomNumbers = allReservations.map(res => res.room.roomNumber).join(', ');
+            // Create payment intent with enhanced metadata
             const paymentIntent = await stripe.paymentIntents.create({
-                amount: Math.round(reservation.totalPrice * 100), // Convert to cents
-                currency: 'usd',
+                amount: Math.round(totalAmount * 100), // Convert to cents
+                currency: 'eur',
                 automatic_payment_methods: {
                     enabled: true,
                 },
                 metadata: {
-                    reservationId: reservation.id,
+                    reservationId: reservation.id, // Primary reservation for webhook
                     guestEmail: reservation.guestEmail,
-                    roomNumber: reservation.room.roomNumber,
+                    roomNumbers: roomNumbers,
+                    roomCount: allReservations.length.toString(),
                     checkIn: reservation.checkIn.toISOString(),
                     checkOut: reservation.checkOut.toISOString(),
+                    isMultiRoom: allReservations.length > 1 ? 'true' : 'false'
                 },
-                description: `Hotel reservation for ${reservation.guestFirstName} ${reservation.guestLastName}`,
+                description: allReservations.length > 1
+                    ? `Hotel reservation (${allReservations.length} rooms) for ${reservation.guestFirstName} ${reservation.guestLastName}`
+                    : `Hotel reservation for ${reservation.guestFirstName} ${reservation.guestLastName}`,
                 receipt_email: reservation.guestEmail,
             });
-            // Create payment record
-            await prisma.payment.create({
-                data: {
-                    reservationId: reservation.id,
-                    amount: reservation.totalPrice,
-                    currency: 'usd',
-                    stripePaymentIntentId: paymentIntent.id,
-                    status: 'PROCESSING'
-                }
-            });
-            // Update reservation with payment intent and set timeout
-            const expiresAt = new Date();
-            expiresAt.setMinutes(expiresAt.getMinutes() + 30); // 30 minutes to complete payment
-            await prisma.reservation.update({
-                where: { id: reservation.id },
-                data: {
-                    paymentIntentId: paymentIntent.id,
-                    paymentStatus: 'PROCESSING',
-                    expiresAt
-                }
+            // Update ALL reservations in the group with the actual Stripe payment intent ID
+            await prisma.$transaction(async (tx) => {
+                // Update all reservations in the group
+                await tx.reservation.updateMany({
+                    where: {
+                        OR: [
+                            { id: reservation.id },
+                            { paymentIntentId: reservation.paymentIntentId }
+                        ]
+                    },
+                    data: {
+                        paymentIntentId: paymentIntent.id,
+                        paymentStatus: 'PROCESSING'
+                    }
+                });
+                // Create payment record for the primary reservation
+                await tx.payment.create({
+                    data: {
+                        reservationId: reservation.id,
+                        amount: totalAmount,
+                        currency: 'eur',
+                        stripePaymentIntentId: paymentIntent.id,
+                        status: 'PROCESSING'
+                    }
+                });
             });
             return paymentIntent.client_secret;
         },

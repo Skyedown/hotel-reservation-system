@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
 import { makeExecutableSchema } from '@graphql-tools/schema';
@@ -43,12 +43,12 @@ async function startServer() {
     }) as any
   );
 
-  app.get('/health', (_, res) => {
+  app.get('/health', (_: Request, res: Response) => {
     res.json({ status: 'OK', message: 'Server is running' });
   });
 
   // Debug endpoint to check webhook configuration
-  app.get('/debug/webhook', (_, res) => {
+  app.get('/debug/webhook', (_: Request, res: Response) => {
     res.json({
       webhook_secret_configured: !!process.env.STRIPE_WEBHOOK_SECRET,
       stripe_key_configured: !!process.env.STRIPE_SECRET_KEY,
@@ -58,7 +58,7 @@ async function startServer() {
   });
 
   // Stripe webhook endpoint (must be before express.json() middleware)
-  app.post('/webhook/stripe', express.raw({ type: 'application/json' }), async (req, res) => {
+  app.post('/webhook/stripe', express.raw({ type: 'application/json' }), async (req: Request, res: Response) => {
     const signature = req.headers['stripe-signature'] as string;
     
     console.log(`Received Stripe webhook - Content-Length: ${req.get('Content-Length')}, Signature present: ${!!signature}`);
@@ -99,7 +99,7 @@ async function startServer() {
   });
 
   // Serve reservation access pages
-  app.get('/reservation/:token', (req, res) => {
+  app.get('/reservation/:token', (req: Request, res: Response) => {
     // This would serve a simple HTML page for reservation management
     res.send(`
       <!DOCTYPE html>

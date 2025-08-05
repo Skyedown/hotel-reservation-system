@@ -12,7 +12,6 @@ export declare class ReservationStateMachine {
     transition(reservationId: string, action: string): Promise<boolean>;
     canTransition(reservationId: string, action: string): Promise<boolean>;
     getAvailableTransitions(status: ReservationStatus): string[];
-    cleanupExpiredReservations(): Promise<number>;
 }
 export declare const reservationStateMachine: ReservationStateMachine;
 //# sourceMappingURL=reservationStateMachine.d.ts.map

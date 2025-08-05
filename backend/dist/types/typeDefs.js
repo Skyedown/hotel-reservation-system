@@ -59,7 +59,6 @@ exports.typeDefs = `#graphql
     specialRequests: String
     accessToken: String!
     payments: [Payment!]!
-    expiresAt: DateTime
     lastStatusChange: DateTime!
     notes: String
     createdAt: DateTime!
@@ -135,12 +134,22 @@ exports.typeDefs = `#graphql
     specialRequests: String
   }
 
-  input UpdateReservationInput {
-    checkIn: DateTime
-    checkOut: DateTime
-    guests: Int
+  input CreateMultiRoomReservationInput {
+    guestEmail: String!
+    guestFirstName: String!
+    guestLastName: String!
+    guestPhone: String
     specialRequests: String
+    rooms: [RoomReservationInput!]!
   }
+
+  input RoomReservationInput {
+    roomId: ID!
+    checkIn: DateTime!
+    checkOut: DateTime!
+    guests: Int!
+  }
+
 
   input CreateRoomInput {
     roomNumber: String!
@@ -175,9 +184,9 @@ exports.typeDefs = `#graphql
     
     # Public reservation creation
     createReservation(input: CreateReservationInput!): Reservation!
+    createMultiRoomReservation(input: CreateMultiRoomReservationInput!): [Reservation!]!
     
     # Guest reservation management via token
-    updateReservation(accessToken: String!, input: UpdateReservationInput!): Reservation!
     cancelReservation(accessToken: String!): Reservation!
     
     # Payment processing

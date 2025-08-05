@@ -35,7 +35,6 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.cronService = exports.CronService = void 0;
 const cron = __importStar(require("node-cron"));
-const reservationStateMachine_1 = require("./reservationStateMachine");
 const sendGridEmailService_1 = require("./sendGridEmailService");
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
@@ -45,18 +44,6 @@ class CronService {
     }
     start() {
         console.log('🕒 Starting cron services...');
-        // Cleanup expired reservations every 5 minutes
-        const cleanupTask = cron.schedule('*/5 * * * *', async () => {
-            try {
-                const cleanedUp = await reservationStateMachine_1.reservationStateMachine.cleanupExpiredReservations();
-                if (cleanedUp > 0) {
-                    console.log(`🧹 Cleaned up ${cleanedUp} expired reservations`);
-                }
-            }
-            catch (error) {
-                console.error('Error in reservation cleanup:', error);
-            }
-        });
         // Schedule check-in reminders (every hour)
         const scheduleRemindersTask = cron.schedule('0 * * * *', async () => {
             try {
@@ -84,7 +71,7 @@ class CronService {
                 console.error('Error in daily cleanup:', error);
             }
         });
-        this.tasks = [cleanupTask, scheduleRemindersTask, reminderTask, dailyCleanupTask];
+        this.tasks = [scheduleRemindersTask, reminderTask, dailyCleanupTask];
         // Start all tasks
         this.tasks.forEach(task => task.start());
         console.log('✅ Cron services started successfully');
@@ -229,20 +216,16 @@ class CronService {
     getStatus() {
         return [
             {
-                task: 'Expired Reservations Cleanup (every 5 minutes)',
+                task: 'Check-in Reminder Scheduling (hourly)',
                 active: this.tasks.length > 0
             },
             {
-                task: 'Check-in Reminder Scheduling (hourly)',
+                task: 'Reminder Email Processing (every 15 minutes)',
                 active: this.tasks.length > 1
             },
             {
-                task: 'Reminder Email Processing (every 15 minutes)',
-                active: this.tasks.length > 2
-            },
-            {
                 task: 'Daily Cleanup (2 AM daily)',
-                active: this.tasks.length > 3
+                active: this.tasks.length > 2
             }
         ];
     }
