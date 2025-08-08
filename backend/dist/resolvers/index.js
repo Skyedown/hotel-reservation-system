@@ -23,7 +23,8 @@ exports.resolvers = {
     Admin: {
     // No additional fields needed for now
     },
-    Room: roomResolvers_1.roomResolvers.Room,
+    RoomType: roomResolvers_1.roomResolvers.RoomType,
+    ActualRoom: roomResolvers_1.roomResolvers.ActualRoom,
     Reservation: reservationResolvers_1.reservationResolvers.Reservation,
     Payment: paymentResolvers_1.paymentResolvers.Payment,
 };

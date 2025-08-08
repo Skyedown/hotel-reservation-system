@@ -69,7 +69,8 @@ export class CronService {
           }
         },
         include: {
-          room: true,
+          roomType: true,
+          actualRoom: true,
           emailReminders: true
         }
       });
@@ -118,7 +119,8 @@ export class CronService {
         include: {
           reservation: {
             include: {
-              room: true
+              roomType: true,
+              actualRoom: true
             }
           }
         }

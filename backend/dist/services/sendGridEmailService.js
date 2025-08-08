@@ -74,8 +74,8 @@ class SendGridEmailService {
             subject: `🏨 Check-in Reminder - Tomorrow at ${checkInDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
             dynamicTemplateData: {
                 guestName: `${reservation.guestFirstName} ${reservation.guestLastName}`,
-                roomNumber: reservation.room.roomNumber,
-                roomType: reservation.room.type,
+                roomNumber: reservation.actualRoom?.roomNumber || 'TBA',
+                roomType: reservation.roomType.name,
                 checkInDate: checkInDate.toLocaleDateString(),
                 checkInTime: checkInDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 checkOutDate: checkOutDate.toLocaleDateString(),
@@ -91,7 +91,7 @@ Dear ${reservation.guestFirstName} ${reservation.guestLastName},
 This is a friendly reminder that your check-in is scheduled for tomorrow!
 
 Reservation Details:
-- Room: ${reservation.room.roomNumber} (${reservation.room.type})
+- Room: ${reservation.actualRoom?.roomNumber || 'TBA'} (${reservation.roomType.name})
 - Check-in: ${checkInDate.toLocaleDateString()} at ${checkInDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
 - Check-out: ${checkOutDate.toLocaleDateString()}
 
@@ -136,7 +136,7 @@ ${process.env.HOTEL_NAME || 'Hotel'} Team
       
       <div class="reservation-details">
         <h3>Reservation Details:</h3>
-        <p><strong>Room:</strong> ${reservation.room.roomNumber} (${reservation.room.type})</p>
+        <p><strong>Room:</strong> ${reservation.actualRoom?.roomNumber || 'TBA'} (${reservation.roomType.name})</p>
         <p><strong>Check-in:</strong> ${checkInDate.toLocaleDateString()} at ${checkInDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
         <p><strong>Check-out:</strong> ${checkOutDate.toLocaleDateString()}</p>
       </div>
@@ -173,7 +173,7 @@ Great news! Your payment has been successfully processed and your reservation is
 
 Reservation Details:
 - Confirmation #: ${reservation.id.slice(-8).toUpperCase()}
-- Room: ${reservation.room.roomNumber} (${reservation.room.type})
+- Room: ${reservation.actualRoom?.roomNumber || 'TBA'} (${reservation.roomType.name})
 - Check-in: ${checkInDate.toLocaleDateString()}
 - Check-out: ${checkOutDate.toLocaleDateString()}
 - Total Paid: $${reservation.totalPrice}
@@ -219,7 +219,7 @@ ${process.env.HOTEL_NAME || 'Hotel'} Team
       <div class="reservation-details">
         <h3>Reservation Details:</h3>
         <p><strong>Confirmation #:</strong> ${reservation.id.slice(-8).toUpperCase()}</p>
-        <p><strong>Room:</strong> ${reservation.room.roomNumber} (${reservation.room.type})</p>
+        <p><strong>Room:</strong> ${reservation.actualRoom?.roomNumber || 'TBA'} (${reservation.roomType.name})</p>
         <p><strong>Check-in:</strong> ${checkInDate.toLocaleDateString()}</p>
         <p><strong>Check-out:</strong> ${checkOutDate.toLocaleDateString()}</p>
         <p><strong>Total Paid:</strong> $${reservation.totalPrice}</p>
@@ -269,11 +269,11 @@ ${process.env.HOTEL_NAME || 'Hotel'} Team
         const checkOutDate = new Date(primaryReservation.checkOut);
         const managementUrl = `${process.env.FRONTEND_URL}/reservation/${primaryReservation.accessToken}`;
         // Create room details list
-        const roomDetails = reservations.map(res => `- Room ${res.room.roomNumber} (${res.room.type}) - ${res.guests} ${res.guests === 1 ? 'guest' : 'guests'} - €${res.totalPrice}`).join('\n');
+        const roomDetails = reservations.map(res => `- Room ${res.actualRoom?.roomNumber || 'TBA'} (${res.roomType.name}) - ${res.guests} ${res.guests === 1 ? 'guest' : 'guests'} - €${res.totalPrice}`).join('\n');
         const roomDetailsHtml = reservations.map(res => `
       <tr>
-        <td style="padding: 8px; border-bottom: 1px solid #ddd;">Room ${res.room.roomNumber}</td>
-        <td style="padding: 8px; border-bottom: 1px solid #ddd;">${res.room.type}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #ddd;">Room ${res.actualRoom?.roomNumber || 'TBA'}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #ddd;">${res.roomType.name}</td>
         <td style="padding: 8px; border-bottom: 1px solid #ddd;">${res.guests} ${res.guests === 1 ? 'guest' : 'guests'}</td>
         <td style="padding: 8px; border-bottom: 1px solid #ddd;">€${res.totalPrice}</td>
       </tr>
@@ -388,7 +388,7 @@ We're writing to confirm that your reservation has been cancelled.
 
 Cancelled Reservation Details:
 - Confirmation #: ${reservation.id.slice(-8).toUpperCase()}
-- Room: ${reservation.room.roomNumber} (${reservation.room.type})
+- Room: ${reservation.actualRoom?.roomNumber || 'TBA'} (${reservation.roomType.name})
 - Check-in: ${checkInDate.toLocaleDateString()}
 - Check-out: ${checkOutDate.toLocaleDateString()}
 - Amount: $${reservation.totalPrice}
@@ -436,7 +436,7 @@ ${process.env.HOTEL_NAME || 'Hotel'} Team
       <div class="reservation-details">
         <h3>Cancelled Reservation Details:</h3>
         <p><strong>Confirmation #:</strong> ${reservation.id.slice(-8).toUpperCase()}</p>
-        <p><strong>Room:</strong> ${reservation.room.roomNumber} (${reservation.room.type})</p>
+        <p><strong>Room:</strong> ${reservation.actualRoom?.roomNumber || 'TBA'} (${reservation.roomType.name})</p>
         <p><strong>Check-in:</strong> ${checkInDate.toLocaleDateString()}</p>
         <p><strong>Check-out:</strong> ${checkOutDate.toLocaleDateString()}</p>
         <p><strong>Amount:</strong> $${reservation.totalPrice}</p>
@@ -474,7 +474,7 @@ We're sorry to inform you that we were unable to process your payment for the fo
 
 Reservation Details:
 - Confirmation #: ${reservation.id.slice(-8).toUpperCase()}
-- Room: ${reservation.room.roomNumber} (${reservation.room.type})
+- Room: ${reservation.actualRoom?.roomNumber || 'TBA'} (${reservation.roomType.name})
 - Check-in: ${checkInDate.toLocaleDateString()}
 - Check-out: ${checkOutDate.toLocaleDateString()}
 - Amount: $${reservation.totalPrice}
@@ -529,7 +529,7 @@ ${process.env.HOTEL_NAME || 'Hotel'} Team
       <div class="reservation-details">
         <h3>Failed Reservation Details:</h3>
         <p><strong>Confirmation #:</strong> ${reservation.id.slice(-8).toUpperCase()}</p>
-        <p><strong>Room:</strong> ${reservation.room.roomNumber} (${reservation.room.type})</p>
+        <p><strong>Room:</strong> ${reservation.actualRoom?.roomNumber || 'TBA'} (${reservation.roomType.name})</p>
         <p><strong>Check-in:</strong> ${checkInDate.toLocaleDateString()}</p>
         <p><strong>Check-out:</strong> ${checkOutDate.toLocaleDateString()}</p>
         <p><strong>Amount:</strong> $${reservation.totalPrice}</p>

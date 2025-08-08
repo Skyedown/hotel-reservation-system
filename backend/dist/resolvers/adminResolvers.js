@@ -25,7 +25,8 @@ exports.adminResolvers = {
             }
             return prisma.reservation.findMany({
                 include: {
-                    room: true,
+                    roomType: true,
+                    actualRoom: true,
                     payments: true
                 },
                 orderBy: {
@@ -42,7 +43,8 @@ exports.adminResolvers = {
             return prisma.reservation.findUnique({
                 where: { id },
                 include: {
-                    room: true,
+                    roomType: true,
+                    actualRoom: true,
                     payments: true
                 }
             });
@@ -77,7 +79,8 @@ exports.adminResolvers = {
                 where: { id },
                 data: { status },
                 include: {
-                    room: true,
+                    roomType: true,
+                    actualRoom: true,
                     payments: true
                 }
             });

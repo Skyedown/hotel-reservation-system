@@ -1,4 +1,4 @@
-import { Reservation, Room, EmailType } from '@prisma/client';
+import { Reservation, RoomType, ActualRoom, EmailType } from '@prisma/client';
 export interface EmailTemplate {
     templateId?: string;
     subject: string;
@@ -12,34 +12,44 @@ export declare class SendGridEmailService {
     private initialize;
     sendEmail(to: string, template: EmailTemplate, emailType?: EmailType, reservationId?: string): Promise<void>;
     generateCheckInReminder24H(reservation: Reservation & {
-        room: Room;
+        roomType: RoomType;
+        actualRoom: ActualRoom | null;
     }): EmailTemplate;
     generatePaymentConfirmationEmail(reservation: Reservation & {
-        room: Room;
+        roomType: RoomType;
+        actualRoom: ActualRoom | null;
     }): EmailTemplate;
     sendCheckInReminder24H(reservation: Reservation & {
-        room: Room;
+        roomType: RoomType;
+        actualRoom: ActualRoom | null;
     }): Promise<void>;
     sendPaymentConfirmationEmail(reservation: Reservation & {
-        room: Room;
+        roomType: RoomType;
+        actualRoom: ActualRoom | null;
     }): Promise<void>;
     sendMultiRoomPaymentConfirmationEmail(reservations: (Reservation & {
-        room: Room;
+        roomType: RoomType;
+        actualRoom: ActualRoom | null;
     })[]): Promise<void>;
     generateMultiRoomPaymentConfirmationEmail(reservations: (Reservation & {
-        room: Room;
+        roomType: RoomType;
+        actualRoom: ActualRoom | null;
     })[]): EmailTemplate;
     generateCancellationEmail(reservation: Reservation & {
-        room: Room;
+        roomType: RoomType;
+        actualRoom: ActualRoom | null;
     }): EmailTemplate;
     generatePaymentFailedEmail(reservation: Reservation & {
-        room: Room;
+        roomType: RoomType;
+        actualRoom: ActualRoom | null;
     }): EmailTemplate;
     sendCancellationEmail(reservation: Reservation & {
-        room: Room;
+        roomType: RoomType;
+        actualRoom: ActualRoom | null;
     }): Promise<void>;
     sendPaymentFailedEmail(reservation: Reservation & {
-        room: Room;
+        roomType: RoomType;
+        actualRoom: ActualRoom | null;
     }): Promise<void>;
     private markReminderAsSent;
     private markReminderAsFailed;

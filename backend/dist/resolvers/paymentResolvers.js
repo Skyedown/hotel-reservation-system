@@ -39,7 +39,8 @@ exports.paymentResolvers = {
             const reservation = await prisma.reservation.findUnique({
                 where: { accessToken },
                 include: {
-                    room: true,
+                    roomType: true,
+                    actualRoom: true,
                     payments: true
                 }
             });
@@ -58,14 +59,16 @@ exports.paymentResolvers = {
                         paymentIntentId: reservation.paymentIntentId
                     },
                     include: {
-                        room: true,
+                        roomType: true,
+                        actualRoom: true,
                         payments: true
                     }
                 });
             }
             // Calculate total amount for all reservations
             const totalAmount = allReservations.reduce((sum, res) => sum + res.totalPrice, 0);
-            const roomNumbers = allReservations.map(res => res.room.roomNumber).join(', ');
+            const roomTypes = allReservations.map(res => res.roomType.name).join(', ');
+            const roomNumbers = allReservations.map(res => res.actualRoom?.roomNumber || 'TBA').join(', ');
             // Create payment intent with enhanced metadata
             const paymentIntent = await stripe.paymentIntents.create({
                 amount: Math.round(totalAmount * 100), // Convert to cents
@@ -150,7 +153,8 @@ exports.paymentResolvers = {
             return prisma.reservation.findUnique({
                 where: { id: parent.reservationId },
                 include: {
-                    room: true
+                    roomType: true,
+                    actualRoom: true
                 }
             });
         },

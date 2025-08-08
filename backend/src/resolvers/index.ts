@@ -24,7 +24,8 @@ export const resolvers = {
   Admin: {
     // No additional fields needed for now
   },
-  Room: roomResolvers.Room,
+  RoomType: roomResolvers.RoomType,
+  ActualRoom: roomResolvers.ActualRoom,
   Reservation: reservationResolvers.Reservation,
   Payment: paymentResolvers.Payment,
 };

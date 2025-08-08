@@ -8,7 +8,8 @@ exports.reservationResolvers = {
             const reservation = await prisma.reservation.findUnique({
                 where: { accessToken },
                 include: {
-                    room: true,
+                    roomType: true,
+                    actualRoom: true,
                     payments: true
                 }
             });
@@ -28,54 +29,25 @@ exports.reservationResolvers = {
                 for (const roomReservation of input.rooms) {
                     // Generate unique access token for each reservation
                     const accessToken = (0, crypto_1.randomBytes)(32).toString('hex');
-                    // Check room availability
-                    const conflictingReservations = await tx.reservation.findMany({
-                        where: {
-                            roomId: roomReservation.roomId,
-                            status: {
-                                in: ['CONFIRMED', 'CHECKED_IN']
-                            },
-                            OR: [
-                                {
-                                    AND: [
-                                        { checkIn: { lte: roomReservation.checkIn } },
-                                        { checkOut: { gt: roomReservation.checkIn } }
-                                    ]
-                                },
-                                {
-                                    AND: [
-                                        { checkIn: { lt: roomReservation.checkOut } },
-                                        { checkOut: { gte: roomReservation.checkOut } }
-                                    ]
-                                },
-                                {
-                                    AND: [
-                                        { checkIn: { gte: roomReservation.checkIn } },
-                                        { checkOut: { lte: roomReservation.checkOut } }
-                                    ]
-                                }
-                            ]
-                        }
+                    // Get room type details
+                    const roomType = await tx.roomType.findUnique({
+                        where: { id: roomReservation.roomTypeId }
                     });
-                    if (conflictingReservations.length > 0) {
-                        const room = await tx.room.findUnique({ where: { id: roomReservation.roomId } });
-                        throw new Error(`Room ${room?.roomNumber} is not available for the selected dates`);
+                    if (!roomType) {
+                        throw new Error(`Room type not found: ${roomReservation.roomTypeId}`);
                     }
-                    // Get room details to calculate total price
-                    const room = await tx.room.findUnique({
-                        where: { id: roomReservation.roomId }
-                    });
-                    if (!room) {
-                        throw new Error(`Room not found: ${roomReservation.roomId}`);
+                    // Check if room type has capacity for guests
+                    if (roomType.capacity < roomReservation.guests) {
+                        throw new Error(`Room type ${roomType.name} can only accommodate ${roomType.capacity} guests`);
                     }
                     // Calculate number of nights
                     const checkInDate = new Date(roomReservation.checkIn);
                     const checkOutDate = new Date(roomReservation.checkOut);
                     const nights = Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24));
-                    const totalPrice = room.price * nights;
+                    const totalPrice = roomType.price * nights;
                     const reservation = await tx.reservation.create({
                         data: {
-                            roomId: roomReservation.roomId,
+                            roomTypeId: roomReservation.roomTypeId,
                             guestEmail: input.guestEmail,
                             guestFirstName: input.guestFirstName,
                             guestLastName: input.guestLastName,
@@ -90,7 +62,8 @@ exports.reservationResolvers = {
                             paymentIntentId: `temp_${sharedPaymentId}`
                         },
                         include: {
-                            room: true,
+                            roomType: true,
+                            actualRoom: true,
                             payments: true
                         }
                     });
@@ -103,50 +76,22 @@ exports.reservationResolvers = {
         createReservation: async (_, { input }, { prisma }) => {
             // Generate unique access token
             const accessToken = (0, crypto_1.randomBytes)(32).toString('hex');
-            // Check room availability
-            const conflictingReservations = await prisma.reservation.findMany({
-                where: {
-                    roomId: input.roomId,
-                    status: {
-                        in: ['CONFIRMED', 'CHECKED_IN']
-                    },
-                    OR: [
-                        {
-                            AND: [
-                                { checkIn: { lte: input.checkIn } },
-                                { checkOut: { gt: input.checkIn } }
-                            ]
-                        },
-                        {
-                            AND: [
-                                { checkIn: { lt: input.checkOut } },
-                                { checkOut: { gte: input.checkOut } }
-                            ]
-                        },
-                        {
-                            AND: [
-                                { checkIn: { gte: input.checkIn } },
-                                { checkOut: { lte: input.checkOut } }
-                            ]
-                        }
-                    ]
-                }
+            // Get room type details
+            const roomType = await prisma.roomType.findUnique({
+                where: { id: input.roomTypeId }
             });
-            if (conflictingReservations.length > 0) {
-                throw new Error('Room is not available for the selected dates');
+            if (!roomType) {
+                throw new Error('Room type not found');
             }
-            // Get room details to calculate total price
-            const room = await prisma.room.findUnique({
-                where: { id: input.roomId }
-            });
-            if (!room) {
-                throw new Error('Room not found');
+            // Check if room type has capacity for guests
+            if (roomType.capacity < input.guests) {
+                throw new Error(`Room type ${roomType.name} can only accommodate ${roomType.capacity} guests`);
             }
             // Calculate number of nights
             const checkInDate = new Date(input.checkIn);
             const checkOutDate = new Date(input.checkOut);
             const nights = Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24));
-            const totalPrice = room.price * nights;
+            const totalPrice = roomType.price * nights;
             return prisma.reservation.create({
                 data: {
                     ...input,
@@ -154,7 +99,8 @@ exports.reservationResolvers = {
                     accessToken
                 },
                 include: {
-                    room: true,
+                    roomType: true,
+                    actualRoom: true,
                     payments: true
                 }
             });
@@ -163,7 +109,8 @@ exports.reservationResolvers = {
             const reservation = await prisma.reservation.findUnique({
                 where: { accessToken },
                 include: {
-                    room: true,
+                    roomType: true,
+                    actualRoom: true,
                     payments: true
                 }
             });
@@ -184,7 +131,8 @@ exports.reservationResolvers = {
                         paymentIntentId: reservation.paymentIntentId
                     },
                     include: {
-                        room: true,
+                        roomType: true,
+                        actualRoom: true,
                         payments: true
                     }
                 });
@@ -202,16 +150,24 @@ exports.reservationResolvers = {
             return prisma.reservation.findUnique({
                 where: { accessToken },
                 include: {
-                    room: true,
+                    roomType: true,
+                    actualRoom: true,
                     payments: true
                 }
             });
         },
     },
     Reservation: {
-        room: async (parent, _, { prisma }) => {
-            return prisma.room.findUnique({
-                where: { id: parent.roomId }
+        roomType: async (parent, _, { prisma }) => {
+            return prisma.roomType.findUnique({
+                where: { id: parent.roomTypeId }
+            });
+        },
+        actualRoom: async (parent, _, { prisma }) => {
+            if (!parent.actualRoomId)
+                return null;
+            return prisma.actualRoom.findUnique({
+                where: { id: parent.actualRoomId }
             });
         },
         payments: async (parent, _, { prisma }) => {

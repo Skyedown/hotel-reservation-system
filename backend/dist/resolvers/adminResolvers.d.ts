@@ -26,25 +26,35 @@ export declare const adminResolvers: {
                 refundAmount: number | null;
                 webhookEventId: string | null;
             }[];
-            room: {
+            roomType: {
+                name: string;
                 id: string;
                 createdAt: Date;
                 updatedAt: Date;
-                roomNumber: string;
-                type: import(".prisma/client").$Enums.RoomType;
                 description: string;
                 price: number;
                 capacity: number;
                 amenities: string[];
                 images: string[];
+                isActive: boolean;
+            };
+            actualRoom: {
+                id: string;
+                createdAt: Date;
+                updatedAt: Date;
+                roomTypeId: string;
+                roomNumber: string;
                 isAvailable: boolean;
+                isUnderMaintenance: boolean;
+                maintenanceNotes: string | null;
             };
         } & {
             id: string;
             createdAt: Date;
             updatedAt: Date;
             status: import(".prisma/client").$Enums.ReservationStatus;
-            roomId: string;
+            roomTypeId: string;
+            actualRoomId: string | null;
             guestEmail: string;
             guestFirstName: string;
             guestLastName: string;
@@ -74,25 +84,35 @@ export declare const adminResolvers: {
                 refundAmount: number | null;
                 webhookEventId: string | null;
             }[];
-            room: {
+            roomType: {
+                name: string;
                 id: string;
                 createdAt: Date;
                 updatedAt: Date;
-                roomNumber: string;
-                type: import(".prisma/client").$Enums.RoomType;
                 description: string;
                 price: number;
                 capacity: number;
                 amenities: string[];
                 images: string[];
+                isActive: boolean;
+            };
+            actualRoom: {
+                id: string;
+                createdAt: Date;
+                updatedAt: Date;
+                roomTypeId: string;
+                roomNumber: string;
                 isAvailable: boolean;
+                isUnderMaintenance: boolean;
+                maintenanceNotes: string | null;
             };
         } & {
             id: string;
             createdAt: Date;
             updatedAt: Date;
             status: import(".prisma/client").$Enums.ReservationStatus;
-            roomId: string;
+            roomTypeId: string;
+            actualRoomId: string | null;
             guestEmail: string;
             guestFirstName: string;
             guestLastName: string;
@@ -138,25 +158,35 @@ export declare const adminResolvers: {
                 refundAmount: number | null;
                 webhookEventId: string | null;
             }[];
-            room: {
+            roomType: {
+                name: string;
                 id: string;
                 createdAt: Date;
                 updatedAt: Date;
-                roomNumber: string;
-                type: import(".prisma/client").$Enums.RoomType;
                 description: string;
                 price: number;
                 capacity: number;
                 amenities: string[];
                 images: string[];
+                isActive: boolean;
+            };
+            actualRoom: {
+                id: string;
+                createdAt: Date;
+                updatedAt: Date;
+                roomTypeId: string;
+                roomNumber: string;
                 isAvailable: boolean;
+                isUnderMaintenance: boolean;
+                maintenanceNotes: string | null;
             };
         } & {
             id: string;
             createdAt: Date;
             updatedAt: Date;
             status: import(".prisma/client").$Enums.ReservationStatus;
-            roomId: string;
+            roomTypeId: string;
+            actualRoomId: string | null;
             guestEmail: string;
             guestFirstName: string;
             guestLastName: string;

@@ -21,26 +21,42 @@ model Admin {
   @@map("admins")
 }
 
-model Room {
-  id           String        @id @default(cuid())
-  roomNumber   String        @unique
-  type         RoomType
-  description  String
-  price        Float
-  capacity     Int
-  amenities    String[]
-  images       String[]
-  isAvailable  Boolean       @default(true)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+model RoomType {
+  id          String         @id @default(cuid())
+  name        String         @unique
+  description String
+  price       Float
+  capacity    Int
+  amenities   String[]
+  images      String[]
+  isActive    Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  rooms       ActualRoom[]
   reservations Reservation[]
 
-  @@map("rooms")
+  @@map("room_types")
+}
+
+model ActualRoom {
+  id           String        @id @default(cuid())
+  roomNumber   String        @unique
+  roomTypeId   String
+  isAvailable  Boolean       @default(true)
+  isUnderMaintenance Boolean @default(false)
+  maintenanceNotes String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  roomType     RoomType      @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
+  reservations Reservation[]
+
+  @@map("actual_rooms")
 }
 
 model Reservation {
   id               String            @id @default(cuid())
-  roomId           String
+  roomTypeId       String
+  actualRoomId     String?
   guestEmail       String
   guestFirstName   String
   guestLastName    String
@@ -60,7 +76,8 @@ model Reservation {
   notes            String?
   emailReminders   EmailReminder[]
   payments         Payment[]
-  room             Room              @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  roomType         RoomType          @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
+  actualRoom       ActualRoom?       @relation(fields: [actualRoomId], references: [id], onDelete: SetNull)
 
   @@map("reservations")
 }
@@ -116,12 +133,6 @@ enum AdminRole {
   ADMIN
 }
 
-enum RoomType {
-  STANDARD
-  DELUXE
-  SUITE
-  PRESIDENTIAL
-}
 
 enum ReservationStatus {
   PENDING

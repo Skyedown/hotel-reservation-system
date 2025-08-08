@@ -77,7 +77,7 @@ export class StripeWebhookHandler {
       // Find the primary reservation with payments
       const primaryReservation = await tx.reservation.findUnique({
         where: { id: reservationId },
-        include: { payments: true, room: true }
+        include: { payments: true, roomType: true, actualRoom: true }
       });
 
       if (!primaryReservation) {
@@ -92,7 +92,7 @@ export class StripeWebhookHandler {
         where: { 
           paymentIntentId: primaryReservation.paymentIntentId 
         },
-        include: { room: true }
+        include: { roomType: true, actualRoom: true }
       });
 
       console.log(`Found ${allReservations.length} reservations for paymentIntentId: ${primaryReservation.paymentIntentId}`);

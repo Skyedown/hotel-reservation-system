@@ -35,25 +35,35 @@ export declare const resolvers: {
                 refundAmount: number | null;
                 webhookEventId: string | null;
             }[];
-            room: {
+            roomType: {
+                name: string;
                 id: string;
                 createdAt: Date;
                 updatedAt: Date;
-                roomNumber: string;
-                type: import(".prisma/client").$Enums.RoomType;
                 description: string;
                 price: number;
                 capacity: number;
                 amenities: string[];
                 images: string[];
+                isActive: boolean;
+            };
+            actualRoom: {
+                id: string;
+                createdAt: Date;
+                updatedAt: Date;
+                roomTypeId: string;
+                roomNumber: string;
                 isAvailable: boolean;
+                isUnderMaintenance: boolean;
+                maintenanceNotes: string | null;
             };
         } & {
             id: string;
             createdAt: Date;
             updatedAt: Date;
             status: import(".prisma/client").$Enums.ReservationStatus;
-            roomId: string;
+            roomTypeId: string;
+            actualRoomId: string | null;
             guestEmail: string;
             guestFirstName: string;
             guestLastName: string;
@@ -69,44 +79,81 @@ export declare const resolvers: {
             lastStatusChange: Date;
             notes: string | null;
         }>;
-        rooms: (_: any, __: any, { prisma }: import("../context").Context) => Promise<{
+        roomTypes: (_: any, __: any, { prisma }: import("../context").Context) => Promise<{
+            name: string;
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            roomNumber: string;
-            type: import(".prisma/client").$Enums.RoomType;
             description: string;
             price: number;
             capacity: number;
             amenities: string[];
             images: string[];
-            isAvailable: boolean;
+            isActive: boolean;
         }[]>;
-        room: (_: any, { id }: any, { prisma }: import("../context").Context) => Promise<{
+        roomType: (_: any, { id }: any, { prisma }: import("../context").Context) => Promise<{
+            name: string;
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            roomNumber: string;
-            type: import(".prisma/client").$Enums.RoomType;
             description: string;
             price: number;
             capacity: number;
             amenities: string[];
             images: string[];
-            isAvailable: boolean;
+            isActive: boolean;
         }>;
-        availableRooms: (_: any, { checkIn, checkOut, guests }: any, { prisma }: import("../context").Context) => Promise<{
+        availableRoomTypes: (_: any, { checkIn, checkOut, guests }: any, { prisma }: import("../context").Context) => Promise<{
+            name: string;
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            roomNumber: string;
-            type: import(".prisma/client").$Enums.RoomType;
             description: string;
             price: number;
             capacity: number;
             amenities: string[];
             images: string[];
+            isActive: boolean;
+        }[]>;
+        actualRooms: (_: any, __: any, { admin, prisma }: import("../context").Context) => Promise<{
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            roomTypeId: string;
+            roomNumber: string;
             isAvailable: boolean;
+            isUnderMaintenance: boolean;
+            maintenanceNotes: string | null;
+        }[]>;
+        actualRoom: (_: any, { id }: any, { admin, prisma }: import("../context").Context) => Promise<{
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            roomTypeId: string;
+            roomNumber: string;
+            isAvailable: boolean;
+            isUnderMaintenance: boolean;
+            maintenanceNotes: string | null;
+        }>;
+        actualRoomsByType: (_: any, { roomTypeId }: any, { admin, prisma }: import("../context").Context) => Promise<{
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            roomTypeId: string;
+            roomNumber: string;
+            isAvailable: boolean;
+            isUnderMaintenance: boolean;
+            maintenanceNotes: string | null;
+        }[]>;
+        availableActualRooms: (_: any, { roomTypeId, checkIn, checkOut, excludeReservationIds }: any, { admin, prisma }: import("../context").Context) => Promise<{
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            roomTypeId: string;
+            roomNumber: string;
+            isAvailable: boolean;
+            isUnderMaintenance: boolean;
+            maintenanceNotes: string | null;
         }[]>;
         me: (_: any, __: any, { admin }: import("../context").Context) => Promise<{
             id: string;
@@ -133,25 +180,35 @@ export declare const resolvers: {
                 refundAmount: number | null;
                 webhookEventId: string | null;
             }[];
-            room: {
+            roomType: {
+                name: string;
                 id: string;
                 createdAt: Date;
                 updatedAt: Date;
-                roomNumber: string;
-                type: import(".prisma/client").$Enums.RoomType;
                 description: string;
                 price: number;
                 capacity: number;
                 amenities: string[];
                 images: string[];
+                isActive: boolean;
+            };
+            actualRoom: {
+                id: string;
+                createdAt: Date;
+                updatedAt: Date;
+                roomTypeId: string;
+                roomNumber: string;
                 isAvailable: boolean;
+                isUnderMaintenance: boolean;
+                maintenanceNotes: string | null;
             };
         } & {
             id: string;
             createdAt: Date;
             updatedAt: Date;
             status: import(".prisma/client").$Enums.ReservationStatus;
-            roomId: string;
+            roomTypeId: string;
+            actualRoomId: string | null;
             guestEmail: string;
             guestFirstName: string;
             guestLastName: string;
@@ -181,25 +238,35 @@ export declare const resolvers: {
                 refundAmount: number | null;
                 webhookEventId: string | null;
             }[];
-            room: {
+            roomType: {
+                name: string;
                 id: string;
                 createdAt: Date;
                 updatedAt: Date;
-                roomNumber: string;
-                type: import(".prisma/client").$Enums.RoomType;
                 description: string;
                 price: number;
                 capacity: number;
                 amenities: string[];
                 images: string[];
+                isActive: boolean;
+            };
+            actualRoom: {
+                id: string;
+                createdAt: Date;
+                updatedAt: Date;
+                roomTypeId: string;
+                roomNumber: string;
                 isAvailable: boolean;
+                isUnderMaintenance: boolean;
+                maintenanceNotes: string | null;
             };
         } & {
             id: string;
             createdAt: Date;
             updatedAt: Date;
             status: import(".prisma/client").$Enums.ReservationStatus;
-            roomId: string;
+            roomTypeId: string;
+            actualRoomId: string | null;
             guestEmail: string;
             guestFirstName: string;
             guestLastName: string;
@@ -239,25 +306,35 @@ export declare const resolvers: {
                 refundAmount: number | null;
                 webhookEventId: string | null;
             }[];
-            room: {
+            roomType: {
+                name: string;
                 id: string;
                 createdAt: Date;
                 updatedAt: Date;
-                roomNumber: string;
-                type: import(".prisma/client").$Enums.RoomType;
                 description: string;
                 price: number;
                 capacity: number;
                 amenities: string[];
                 images: string[];
+                isActive: boolean;
+            };
+            actualRoom: {
+                id: string;
+                createdAt: Date;
+                updatedAt: Date;
+                roomTypeId: string;
+                roomNumber: string;
                 isAvailable: boolean;
+                isUnderMaintenance: boolean;
+                maintenanceNotes: string | null;
             };
         } & {
             id: string;
             createdAt: Date;
             updatedAt: Date;
             status: import(".prisma/client").$Enums.ReservationStatus;
-            roomId: string;
+            roomTypeId: string;
+            actualRoomId: string | null;
             guestEmail: string;
             guestFirstName: string;
             guestLastName: string;
@@ -287,25 +364,35 @@ export declare const resolvers: {
                 refundAmount: number | null;
                 webhookEventId: string | null;
             }[];
-            room: {
+            roomType: {
+                name: string;
                 id: string;
                 createdAt: Date;
                 updatedAt: Date;
-                roomNumber: string;
-                type: import(".prisma/client").$Enums.RoomType;
                 description: string;
                 price: number;
                 capacity: number;
                 amenities: string[];
                 images: string[];
+                isActive: boolean;
+            };
+            actualRoom: {
+                id: string;
+                createdAt: Date;
+                updatedAt: Date;
+                roomTypeId: string;
+                roomNumber: string;
                 isAvailable: boolean;
+                isUnderMaintenance: boolean;
+                maintenanceNotes: string | null;
             };
         } & {
             id: string;
             createdAt: Date;
             updatedAt: Date;
             status: import(".prisma/client").$Enums.ReservationStatus;
-            roomId: string;
+            roomTypeId: string;
+            actualRoomId: string | null;
             guestEmail: string;
             guestFirstName: string;
             guestLastName: string;
@@ -321,33 +408,74 @@ export declare const resolvers: {
             lastStatusChange: Date;
             notes: string | null;
         }>;
-        createRoom: (_: any, { input }: any, { admin, prisma }: import("../context").Context) => Promise<{
+        createRoomType: (_: any, { input }: any, { admin, prisma }: import("../context").Context) => Promise<{
+            name: string;
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            roomNumber: string;
-            type: import(".prisma/client").$Enums.RoomType;
             description: string;
             price: number;
             capacity: number;
             amenities: string[];
             images: string[];
-            isAvailable: boolean;
+            isActive: boolean;
         }>;
-        updateRoom: (_: any, { id, input }: any, { admin, prisma }: import("../context").Context) => Promise<{
+        updateRoomType: (_: any, { id, input }: any, { admin, prisma }: import("../context").Context) => Promise<{
+            name: string;
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            roomNumber: string;
-            type: import(".prisma/client").$Enums.RoomType;
             description: string;
             price: number;
             capacity: number;
             amenities: string[];
             images: string[];
-            isAvailable: boolean;
+            isActive: boolean;
         }>;
-        deleteRoom: (_: any, { id }: any, { admin, prisma }: import("../context").Context) => Promise<boolean>;
+        deleteRoomType: (_: any, { id }: any, { admin, prisma }: import("../context").Context) => Promise<boolean>;
+        createActualRoom: (_: any, { input }: any, { admin, prisma }: import("../context").Context) => Promise<{
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            roomTypeId: string;
+            roomNumber: string;
+            isAvailable: boolean;
+            isUnderMaintenance: boolean;
+            maintenanceNotes: string | null;
+        }>;
+        updateActualRoom: (_: any, { id, input }: any, { admin, prisma }: import("../context").Context) => Promise<{
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            roomTypeId: string;
+            roomNumber: string;
+            isAvailable: boolean;
+            isUnderMaintenance: boolean;
+            maintenanceNotes: string | null;
+        }>;
+        deleteActualRoom: (_: any, { id }: any, { admin, prisma }: import("../context").Context) => Promise<boolean>;
+        assignRoomToReservation: (_: any, { reservationId, actualRoomId }: any, { admin, prisma }: import("../context").Context) => Promise<{
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            status: import(".prisma/client").$Enums.ReservationStatus;
+            roomTypeId: string;
+            actualRoomId: string | null;
+            guestEmail: string;
+            guestFirstName: string;
+            guestLastName: string;
+            guestPhone: string | null;
+            checkIn: Date;
+            checkOut: Date;
+            guests: number;
+            totalPrice: number;
+            paymentStatus: import(".prisma/client").$Enums.PaymentStatus;
+            paymentIntentId: string | null;
+            specialRequests: string | null;
+            accessToken: string;
+            lastStatusChange: Date;
+            notes: string | null;
+        }>;
         adminLogin: (_: any, { input }: any, { prisma }: import("../context").Context) => Promise<{
             token: string;
             admin: {
@@ -376,25 +504,35 @@ export declare const resolvers: {
                 refundAmount: number | null;
                 webhookEventId: string | null;
             }[];
-            room: {
+            roomType: {
+                name: string;
                 id: string;
                 createdAt: Date;
                 updatedAt: Date;
-                roomNumber: string;
-                type: import(".prisma/client").$Enums.RoomType;
                 description: string;
                 price: number;
                 capacity: number;
                 amenities: string[];
                 images: string[];
+                isActive: boolean;
+            };
+            actualRoom: {
+                id: string;
+                createdAt: Date;
+                updatedAt: Date;
+                roomTypeId: string;
+                roomNumber: string;
                 isAvailable: boolean;
+                isUnderMaintenance: boolean;
+                maintenanceNotes: string | null;
             };
         } & {
             id: string;
             createdAt: Date;
             updatedAt: Date;
             status: import(".prisma/client").$Enums.ReservationStatus;
-            roomId: string;
+            roomTypeId: string;
+            actualRoomId: string | null;
             guestEmail: string;
             guestFirstName: string;
             guestLastName: string;
@@ -412,13 +550,60 @@ export declare const resolvers: {
         }>;
     };
     Admin: {};
-    Room: {
+    RoomType: {
+        rooms: (parent: any, _: any, { prisma }: import("../context").Context) => Promise<{
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            roomTypeId: string;
+            roomNumber: string;
+            isAvailable: boolean;
+            isUnderMaintenance: boolean;
+            maintenanceNotes: string | null;
+        }[]>;
         reservations: (parent: any, _: any, { prisma }: import("../context").Context) => Promise<{
             id: string;
             createdAt: Date;
             updatedAt: Date;
             status: import(".prisma/client").$Enums.ReservationStatus;
-            roomId: string;
+            roomTypeId: string;
+            actualRoomId: string | null;
+            guestEmail: string;
+            guestFirstName: string;
+            guestLastName: string;
+            guestPhone: string | null;
+            checkIn: Date;
+            checkOut: Date;
+            guests: number;
+            totalPrice: number;
+            paymentStatus: import(".prisma/client").$Enums.PaymentStatus;
+            paymentIntentId: string | null;
+            specialRequests: string | null;
+            accessToken: string;
+            lastStatusChange: Date;
+            notes: string | null;
+        }[]>;
+    };
+    ActualRoom: {
+        roomType: (parent: any, _: any, { prisma }: import("../context").Context) => Promise<{
+            name: string;
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            description: string;
+            price: number;
+            capacity: number;
+            amenities: string[];
+            images: string[];
+            isActive: boolean;
+        }>;
+        reservations: (parent: any, _: any, { prisma }: import("../context").Context) => Promise<{
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            status: import(".prisma/client").$Enums.ReservationStatus;
+            roomTypeId: string;
+            actualRoomId: string | null;
             guestEmail: string;
             guestFirstName: string;
             guestLastName: string;
@@ -436,18 +621,27 @@ export declare const resolvers: {
         }[]>;
     };
     Reservation: {
-        room: (parent: any, _: any, { prisma }: import("../context").Context) => Promise<{
+        roomType: (parent: any, _: any, { prisma }: import("../context").Context) => Promise<{
+            name: string;
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            roomNumber: string;
-            type: import(".prisma/client").$Enums.RoomType;
             description: string;
             price: number;
             capacity: number;
             amenities: string[];
             images: string[];
+            isActive: boolean;
+        }>;
+        actualRoom: (parent: any, _: any, { prisma }: import("../context").Context) => Promise<{
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            roomTypeId: string;
+            roomNumber: string;
             isAvailable: boolean;
+            isUnderMaintenance: boolean;
+            maintenanceNotes: string | null;
         }>;
         payments: (parent: any, _: any, { prisma }: import("../context").Context) => Promise<{
             id: string;
@@ -465,25 +659,35 @@ export declare const resolvers: {
     };
     Payment: {
         reservation: (parent: any, _: any, { prisma }: import("../context").Context) => Promise<{
-            room: {
+            roomType: {
+                name: string;
                 id: string;
                 createdAt: Date;
                 updatedAt: Date;
-                roomNumber: string;
-                type: import(".prisma/client").$Enums.RoomType;
                 description: string;
                 price: number;
                 capacity: number;
                 amenities: string[];
                 images: string[];
+                isActive: boolean;
+            };
+            actualRoom: {
+                id: string;
+                createdAt: Date;
+                updatedAt: Date;
+                roomTypeId: string;
+                roomNumber: string;
                 isAvailable: boolean;
+                isUnderMaintenance: boolean;
+                maintenanceNotes: string | null;
             };
         } & {
             id: string;
             createdAt: Date;
             updatedAt: Date;
             status: import(".prisma/client").$Enums.ReservationStatus;
-            roomId: string;
+            roomTypeId: string;
+            actualRoomId: string | null;
             guestEmail: string;
             guestFirstName: string;
             guestLastName: string;

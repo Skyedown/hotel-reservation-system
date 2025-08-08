@@ -117,7 +117,7 @@ class ReservationStateMachine {
         }
         const reservation = await prisma.reservation.findUnique({
             where: { id: reservationId },
-            include: { payments: true, room: true }
+            include: { payments: true, roomType: true, actualRoom: true }
         });
         if (!reservation) {
             throw new Error(`Reservation not found: ${reservationId}`);
@@ -151,7 +151,7 @@ class ReservationStateMachine {
                 return false;
             const reservation = await prisma.reservation.findUnique({
                 where: { id: reservationId },
-                include: { payments: true }
+                include: { payments: true, roomType: true, actualRoom: true }
             });
             if (!reservation)
                 return false;

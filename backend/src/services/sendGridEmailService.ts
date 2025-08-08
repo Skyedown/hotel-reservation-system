@@ -1,5 +1,5 @@
 import sgMail from '@sendgrid/mail';
-import { Reservation, Room, EmailType, PrismaClient } from '@prisma/client';
+import { Reservation, RoomType, ActualRoom, EmailType, PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -80,7 +80,7 @@ export class SendGridEmailService {
   }
 
   // Check-in reminder template (24 hours before check-in)
-  generateCheckInReminder24H(reservation: Reservation & { room: Room }): EmailTemplate {
+  generateCheckInReminder24H(reservation: Reservation & { roomType: RoomType; actualRoom: ActualRoom | null }): EmailTemplate {
     const managementUrl = `${process.env.FRONTEND_URL}/reservation/${reservation.accessToken}`;
     const checkInDate = new Date(reservation.checkIn);
     const checkOutDate = new Date(reservation.checkOut);
@@ -90,8 +90,8 @@ export class SendGridEmailService {
       subject: `🏨 Check-in Reminder - Tomorrow at ${checkInDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
       dynamicTemplateData: {
         guestName: `${reservation.guestFirstName} ${reservation.guestLastName}`,
-        roomNumber: reservation.room.roomNumber,
-        roomType: reservation.room.type,
+        roomNumber: reservation.actualRoom?.roomNumber || 'TBA',
+        roomType: reservation.roomType.name,
         checkInDate: checkInDate.toLocaleDateString(),
         checkInTime: checkInDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         checkOutDate: checkOutDate.toLocaleDateString(),
@@ -107,7 +107,7 @@ Dear ${reservation.guestFirstName} ${reservation.guestLastName},
 This is a friendly reminder that your check-in is scheduled for tomorrow!
 
 Reservation Details:
-- Room: ${reservation.room.roomNumber} (${reservation.room.type})
+- Room: ${reservation.actualRoom?.roomNumber || 'TBA'} (${reservation.roomType.name})
 - Check-in: ${checkInDate.toLocaleDateString()} at ${checkInDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
 - Check-out: ${checkOutDate.toLocaleDateString()}
 
@@ -152,7 +152,7 @@ ${process.env.HOTEL_NAME || 'Hotel'} Team
       
       <div class="reservation-details">
         <h3>Reservation Details:</h3>
-        <p><strong>Room:</strong> ${reservation.room.roomNumber} (${reservation.room.type})</p>
+        <p><strong>Room:</strong> ${reservation.actualRoom?.roomNumber || 'TBA'} (${reservation.roomType.name})</p>
         <p><strong>Check-in:</strong> ${checkInDate.toLocaleDateString()} at ${checkInDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
         <p><strong>Check-out:</strong> ${checkOutDate.toLocaleDateString()}</p>
       </div>
@@ -175,7 +175,7 @@ ${process.env.HOTEL_NAME || 'Hotel'} Team
   }
 
   // Payment confirmation email (sent when payment succeeds)
-  generatePaymentConfirmationEmail(reservation: Reservation & { room: Room }): EmailTemplate {
+  generatePaymentConfirmationEmail(reservation: Reservation & { roomType: RoomType; actualRoom: ActualRoom | null }): EmailTemplate {
     const managementUrl = `${process.env.FRONTEND_URL}/reservation/${reservation.accessToken}`;
     const checkInDate = new Date(reservation.checkIn);
     const checkOutDate = new Date(reservation.checkOut);
@@ -191,7 +191,7 @@ Great news! Your payment has been successfully processed and your reservation is
 
 Reservation Details:
 - Confirmation #: ${reservation.id.slice(-8).toUpperCase()}
-- Room: ${reservation.room.roomNumber} (${reservation.room.type})
+- Room: ${reservation.actualRoom?.roomNumber || 'TBA'} (${reservation.roomType.name})
 - Check-in: ${checkInDate.toLocaleDateString()}
 - Check-out: ${checkOutDate.toLocaleDateString()}
 - Total Paid: $${reservation.totalPrice}
@@ -237,7 +237,7 @@ ${process.env.HOTEL_NAME || 'Hotel'} Team
       <div class="reservation-details">
         <h3>Reservation Details:</h3>
         <p><strong>Confirmation #:</strong> ${reservation.id.slice(-8).toUpperCase()}</p>
-        <p><strong>Room:</strong> ${reservation.room.roomNumber} (${reservation.room.type})</p>
+        <p><strong>Room:</strong> ${reservation.actualRoom?.roomNumber || 'TBA'} (${reservation.roomType.name})</p>
         <p><strong>Check-in:</strong> ${checkInDate.toLocaleDateString()}</p>
         <p><strong>Check-out:</strong> ${checkOutDate.toLocaleDateString()}</p>
         <p><strong>Total Paid:</strong> $${reservation.totalPrice}</p>
@@ -259,19 +259,19 @@ ${process.env.HOTEL_NAME || 'Hotel'} Team
   }
 
   // Send check-in reminder email
-  async sendCheckInReminder24H(reservation: Reservation & { room: Room }): Promise<void> {
+  async sendCheckInReminder24H(reservation: Reservation & { roomType: RoomType; actualRoom: ActualRoom | null }): Promise<void> {
     const template = this.generateCheckInReminder24H(reservation);
     await this.sendEmail(reservation.guestEmail, template, 'CHECKIN_REMINDER_24H', reservation.id);
   }
 
   // Send payment confirmation email
-  async sendPaymentConfirmationEmail(reservation: Reservation & { room: Room }): Promise<void> {
+  async sendPaymentConfirmationEmail(reservation: Reservation & { roomType: RoomType; actualRoom: ActualRoom | null }): Promise<void> {
     const template = this.generatePaymentConfirmationEmail(reservation);
     await this.sendEmail(reservation.guestEmail, template);
   }
 
   // Send multi-room payment confirmation email  
-  async sendMultiRoomPaymentConfirmationEmail(reservations: (Reservation & { room: Room })[]): Promise<void> {
+  async sendMultiRoomPaymentConfirmationEmail(reservations: (Reservation & { roomType: RoomType; actualRoom: ActualRoom | null })[]): Promise<void> {
     if (reservations.length === 0) return;
     
     // Use the first reservation for guest info (all should have same guest)
@@ -281,7 +281,7 @@ ${process.env.HOTEL_NAME || 'Hotel'} Team
   }
 
   // Generate multi-room payment confirmation email template
-  generateMultiRoomPaymentConfirmationEmail(reservations: (Reservation & { room: Room })[]): EmailTemplate {
+  generateMultiRoomPaymentConfirmationEmail(reservations: (Reservation & { roomType: RoomType; actualRoom: ActualRoom | null })[]): EmailTemplate {
     if (reservations.length === 0) {
       throw new Error('No reservations provided for multi-room confirmation email');
     }
@@ -294,13 +294,13 @@ ${process.env.HOTEL_NAME || 'Hotel'} Team
 
     // Create room details list
     const roomDetails = reservations.map(res => 
-      `- Room ${res.room.roomNumber} (${res.room.type}) - ${res.guests} ${res.guests === 1 ? 'guest' : 'guests'} - €${res.totalPrice}`
+      `- Room ${res.actualRoom?.roomNumber || 'TBA'} (${res.roomType.name}) - ${res.guests} ${res.guests === 1 ? 'guest' : 'guests'} - €${res.totalPrice}`
     ).join('\n');
 
     const roomDetailsHtml = reservations.map(res => `
       <tr>
-        <td style="padding: 8px; border-bottom: 1px solid #ddd;">Room ${res.room.roomNumber}</td>
-        <td style="padding: 8px; border-bottom: 1px solid #ddd;">${res.room.type}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #ddd;">Room ${res.actualRoom?.roomNumber || 'TBA'}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #ddd;">${res.roomType.name}</td>
         <td style="padding: 8px; border-bottom: 1px solid #ddd;">${res.guests} ${res.guests === 1 ? 'guest' : 'guests'}</td>
         <td style="padding: 8px; border-bottom: 1px solid #ddd;">€${res.totalPrice}</td>
       </tr>
@@ -403,7 +403,7 @@ ${process.env.HOTEL_NAME || 'Hotel'} Team
   }
 
   // Cancellation email template
-  generateCancellationEmail(reservation: Reservation & { room: Room }): EmailTemplate {
+  generateCancellationEmail(reservation: Reservation & { roomType: RoomType; actualRoom: ActualRoom | null }): EmailTemplate {
     const checkInDate = new Date(reservation.checkIn);
     const checkOutDate = new Date(reservation.checkOut);
 
@@ -418,7 +418,7 @@ We're writing to confirm that your reservation has been cancelled.
 
 Cancelled Reservation Details:
 - Confirmation #: ${reservation.id.slice(-8).toUpperCase()}
-- Room: ${reservation.room.roomNumber} (${reservation.room.type})
+- Room: ${reservation.actualRoom?.roomNumber || 'TBA'} (${reservation.roomType.name})
 - Check-in: ${checkInDate.toLocaleDateString()}
 - Check-out: ${checkOutDate.toLocaleDateString()}
 - Amount: $${reservation.totalPrice}
@@ -466,7 +466,7 @@ ${process.env.HOTEL_NAME || 'Hotel'} Team
       <div class="reservation-details">
         <h3>Cancelled Reservation Details:</h3>
         <p><strong>Confirmation #:</strong> ${reservation.id.slice(-8).toUpperCase()}</p>
-        <p><strong>Room:</strong> ${reservation.room.roomNumber} (${reservation.room.type})</p>
+        <p><strong>Room:</strong> ${reservation.actualRoom?.roomNumber || 'TBA'} (${reservation.roomType.name})</p>
         <p><strong>Check-in:</strong> ${checkInDate.toLocaleDateString()}</p>
         <p><strong>Check-out:</strong> ${checkOutDate.toLocaleDateString()}</p>
         <p><strong>Amount:</strong> $${reservation.totalPrice}</p>
@@ -491,7 +491,7 @@ ${process.env.HOTEL_NAME || 'Hotel'} Team
   }
 
   // Payment failed email template
-  generatePaymentFailedEmail(reservation: Reservation & { room: Room }): EmailTemplate {
+  generatePaymentFailedEmail(reservation: Reservation & { roomType: RoomType; actualRoom: ActualRoom | null }): EmailTemplate {
     const checkInDate = new Date(reservation.checkIn);
     const checkOutDate = new Date(reservation.checkOut);
 
@@ -506,7 +506,7 @@ We're sorry to inform you that we were unable to process your payment for the fo
 
 Reservation Details:
 - Confirmation #: ${reservation.id.slice(-8).toUpperCase()}
-- Room: ${reservation.room.roomNumber} (${reservation.room.type})
+- Room: ${reservation.actualRoom?.roomNumber || 'TBA'} (${reservation.roomType.name})
 - Check-in: ${checkInDate.toLocaleDateString()}
 - Check-out: ${checkOutDate.toLocaleDateString()}
 - Amount: $${reservation.totalPrice}
@@ -561,7 +561,7 @@ ${process.env.HOTEL_NAME || 'Hotel'} Team
       <div class="reservation-details">
         <h3>Failed Reservation Details:</h3>
         <p><strong>Confirmation #:</strong> ${reservation.id.slice(-8).toUpperCase()}</p>
-        <p><strong>Room:</strong> ${reservation.room.roomNumber} (${reservation.room.type})</p>
+        <p><strong>Room:</strong> ${reservation.actualRoom?.roomNumber || 'TBA'} (${reservation.roomType.name})</p>
         <p><strong>Check-in:</strong> ${checkInDate.toLocaleDateString()}</p>
         <p><strong>Check-out:</strong> ${checkOutDate.toLocaleDateString()}</p>
         <p><strong>Amount:</strong> $${reservation.totalPrice}</p>
@@ -595,13 +595,13 @@ ${process.env.HOTEL_NAME || 'Hotel'} Team
   }
 
   // Send cancellation email
-  async sendCancellationEmail(reservation: Reservation & { room: Room }): Promise<void> {
+  async sendCancellationEmail(reservation: Reservation & { roomType: RoomType; actualRoom: ActualRoom | null }): Promise<void> {
     const template = this.generateCancellationEmail(reservation);
     await this.sendEmail(reservation.guestEmail, template);
   }
 
   // Send payment failed email
-  async sendPaymentFailedEmail(reservation: Reservation & { room: Room }): Promise<void> {
+  async sendPaymentFailedEmail(reservation: Reservation & { roomType: RoomType; actualRoom: ActualRoom | null }): Promise<void> {
     const template = this.generatePaymentFailedEmail(reservation);
     await this.sendEmail(reservation.guestEmail, template);
   }

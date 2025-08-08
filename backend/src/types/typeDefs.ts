@@ -17,32 +17,40 @@ export const typeDefs = `#graphql
     ADMIN
   }
 
-  type Room {
+  type RoomType {
     id: ID!
-    roomNumber: String!
-    type: RoomType!
+    name: String!
     description: String!
     price: Float!
     capacity: Int!
     amenities: [String!]!
     images: [String!]!
-    isAvailable: Boolean!
+    isActive: Boolean!
+    rooms: [ActualRoom!]!
     reservations: [Reservation!]!
     createdAt: DateTime!
     updatedAt: DateTime!
   }
 
-  enum RoomType {
-    STANDARD
-    DELUXE
-    SUITE
-    PRESIDENTIAL
+  type ActualRoom {
+    id: ID!
+    roomNumber: String!
+    roomTypeId: ID!
+    roomType: RoomType!
+    isAvailable: Boolean!
+    isUnderMaintenance: Boolean!
+    maintenanceNotes: String
+    reservations: [Reservation!]!
+    createdAt: DateTime!
+    updatedAt: DateTime!
   }
 
   type Reservation {
     id: ID!
-    roomId: ID!
-    room: Room!
+    roomTypeId: ID!
+    roomType: RoomType!
+    actualRoomId: ID
+    actualRoom: ActualRoom
     guestEmail: String!
     guestFirstName: String!
     guestLastName: String!
@@ -121,7 +129,7 @@ export const typeDefs = `#graphql
   }
 
   input CreateReservationInput {
-    roomId: ID!
+    roomTypeId: ID!
     guestEmail: String!
     guestFirstName: String!
     guestLastName: String!
@@ -142,29 +150,48 @@ export const typeDefs = `#graphql
   }
 
   input RoomReservationInput {
-    roomId: ID!
+    roomTypeId: ID!
     checkIn: DateTime!
     checkOut: DateTime!
     guests: Int!
   }
 
-
-  input CreateRoomInput {
-    roomNumber: String!
-    type: RoomType!
+  input CreateRoomTypeInput {
+    name: String!
     description: String!
     price: Float!
     capacity: Int!
     amenities: [String!]!
     images: [String!]!
+    isActive: Boolean
+  }
+
+  input CreateActualRoomInput {
+    roomNumber: String!
+    roomTypeId: ID!
     isAvailable: Boolean
+    isUnderMaintenance: Boolean
+    maintenanceNotes: String
+  }
+
+  input UpdateActualRoomInput {
+    roomNumber: String
+    isAvailable: Boolean
+    isUnderMaintenance: Boolean
+    maintenanceNotes: String
   }
 
   type Query {
     # Public queries
-    rooms: [Room!]!
-    room(id: ID!): Room
-    availableRooms(checkIn: String!, checkOut: String!, guests: Int!): [Room!]!
+    roomTypes: [RoomType!]!
+    roomType(id: ID!): RoomType
+    availableRoomTypes(checkIn: String!, checkOut: String!, guests: Int!): [RoomType!]!
+    
+    # Admin queries for rooms
+    actualRooms: [ActualRoom!]!
+    actualRoom(id: ID!): ActualRoom
+    actualRoomsByType(roomTypeId: ID!): [ActualRoom!]!
+    availableActualRooms(roomTypeId: ID!, checkIn: String!, checkOut: String!, excludeReservationIds: [ID!]): [ActualRoom!]!
     
     # Guest reservation access via token
     reservation(accessToken: String!): Reservation
@@ -190,11 +217,18 @@ export const typeDefs = `#graphql
     # Payment processing
     createPaymentIntent(accessToken: String!): String!
     
-    # Admin only mutations
-    createRoom(input: CreateRoomInput!): Room!
-    updateRoom(id: ID!, input: CreateRoomInput!): Room!
-    deleteRoom(id: ID!): Boolean!
+    # Admin only mutations for room types
+    createRoomType(input: CreateRoomTypeInput!): RoomType!
+    updateRoomType(id: ID!, input: CreateRoomTypeInput!): RoomType!
+    deleteRoomType(id: ID!): Boolean!
     
+    # Admin only mutations for actual rooms
+    createActualRoom(input: CreateActualRoomInput!): ActualRoom!
+    updateActualRoom(id: ID!, input: UpdateActualRoomInput!): ActualRoom!
+    deleteActualRoom(id: ID!): Boolean!
+    
+    # Admin reservation management
+    assignRoomToReservation(reservationId: ID!, actualRoomId: ID!): Reservation!
     updateReservationStatus(id: ID!, status: ReservationStatus!): Reservation!
     processRefund(reservationId: ID!, amount: Float, reason: String): RefundResult!
   }
