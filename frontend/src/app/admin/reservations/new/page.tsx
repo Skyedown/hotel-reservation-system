@@ -4,10 +4,10 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation } from '@apollo/client';
 import { useForm } from 'react-hook-form';
-import { GET_ALL_ROOMS } from '@/lib/graphql/queries';
+import { GET_ALL_ROOM_TYPES } from '@/lib/graphql/queries';
 import { CREATE_RESERVATION } from '@/lib/graphql/mutations';
-import { getAdminToken, removeAdminToken, formatCurrency, calculateNights, calculateTotal, isValidDateRange, getMinCheckInDate, getMinCheckOutDate, getErrorMessage, sanitizeString, sanitizeEmail, sanitizePhone, sanitizeTextarea, sanitizeNumber } from '@/lib/utils';
-import { Admin, Room } from '@/lib/types';
+import { getAdminToken, removeAdminToken, formatCurrency, calculateNights, calculateTotal, isValidDateRange, getMinCheckInDate, getMinCheckOutDate, getErrorMessage, sanitizeString, sanitizeEmail, sanitizePhone, sanitizeTextarea, sanitizeNumber, toLocalDateString } from '@/lib/utils';
+import { Admin, RoomType } from '@/lib/types';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import DatePicker from 'react-datepicker';
@@ -26,21 +26,23 @@ interface ReservationFormData {
   guestLastName: string;
   guestEmail: string;
   guestPhone: string;
-  roomId: string;
+  roomTypeId: string;
   checkIn: Date;
   checkOut: Date;
-  numberOfGuests: number;
+  guests: number;
   specialRequests?: string;
 }
 
 export default function NewReservation() {
   const [admin, setAdmin] = useState<Admin | null>(null);
-  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  const [selectedRoomType, setSelectedRoomType] = useState<RoomType | null>(null);
   const [checkInDate, setCheckInDate] = useState<Date>(new Date());
   const [checkOutDate, setCheckOutDate] = useState<Date>(new Date(Date.now() + 24 * 60 * 60 * 1000));
+  const [roomAvailability, setRoomAvailability] = useState<{ [roomTypeId: string]: number }>({});
+  const [loadingAvailability, setLoadingAvailability] = useState(false);
   const router = useRouter();
 
-  const { data: roomsData, loading: roomsLoading } = useQuery(GET_ALL_ROOMS);
+  const { data: roomTypesData, loading: roomTypesLoading } = useQuery(GET_ALL_ROOM_TYPES);
   const [createReservation, { loading: createLoading }] = useMutation(CREATE_RESERVATION);
 
   const {
@@ -52,13 +54,14 @@ export default function NewReservation() {
     setValue,
   } = useForm<ReservationFormData>({
     defaultValues: {
-      numberOfGuests: 2,
+      guests: 2,
       checkIn: checkInDate,
       checkOut: checkOutDate,
     }
   });
 
-  const watchedRoomId = watch('roomId');
+  const watchedRoomTypeId = watch('roomTypeId');
+  const watchedGuests = watch('guests') || 1;
 
   useEffect(() => {
     const token = getAdminToken();
@@ -77,12 +80,94 @@ export default function NewReservation() {
     }
   }, [router]);
 
+  // Fetch available room counts for each room type when dates change
   useEffect(() => {
-    if (roomsData?.rooms && watchedRoomId) {
-      const room = roomsData.rooms.find((r: Room) => r.id === watchedRoomId);
-      setSelectedRoom(room || null);
+    const fetchRoomAvailability = async () => {
+      if (!checkInDate || !checkOutDate || !isValidDateRange(checkInDate, checkOutDate) || !roomTypesData?.roomTypes) {
+        return;
+      }
+
+      setLoadingAvailability(true);
+      const availability: { [roomTypeId: string]: number } = {};
+
+      try {
+        // Fetch available room count for each room type
+        for (const roomType of roomTypesData.roomTypes) {
+          if (!roomType.isActive) {
+            availability[roomType.id] = 0;
+            continue;
+          }
+
+          const response = await fetch('http://localhost:4000/graphql', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${getAdminToken()}`,
+            },
+            body: JSON.stringify({
+              query: `
+                query GetAvailableActualRooms($roomTypeId: ID!, $checkIn: String!, $checkOut: String!, $excludeReservationIds: [ID!]) {
+                  availableActualRooms(roomTypeId: $roomTypeId, checkIn: $checkIn, checkOut: $checkOut, excludeReservationIds: $excludeReservationIds) {
+                    id
+                    roomNumber
+                  }
+                }
+              `,
+              variables: {
+                roomTypeId: roomType.id,
+                checkIn: toLocalDateString(checkInDate),
+                checkOut: toLocalDateString(checkOutDate),
+                excludeReservationIds: [],
+              }
+            })
+          });
+
+          const result = await response.json();
+          const availableRooms = result.data?.availableActualRooms || [];
+          availability[roomType.id] = availableRooms.length;
+        }
+
+        setRoomAvailability(availability);
+
+        // Clear selected room type if it has no available rooms
+        if (selectedRoomType && availability[selectedRoomType.id] === 0) {
+          setSelectedRoomType(null);
+          setValue('roomTypeId', '');
+        }
+
+      } catch (error) {
+        console.error('Error fetching room availability:', error);
+        // Set all to 0 on error
+        const errorAvailability: { [roomTypeId: string]: number } = {};
+        roomTypesData.roomTypes.forEach((rt: RoomType) => {
+          errorAvailability[rt.id] = 0;
+        });
+        setRoomAvailability(errorAvailability);
+      } finally {
+        setLoadingAvailability(false);
+      }
+    };
+
+    fetchRoomAvailability();
+  }, [checkInDate, checkOutDate, roomTypesData, selectedRoomType, setValue]);
+
+  useEffect(() => {
+    if (roomTypesData?.roomTypes && watchedRoomTypeId) {
+      const roomType = roomTypesData.roomTypes.find((rt: RoomType) => rt.id === watchedRoomTypeId);
+      setSelectedRoomType(roomType || null);
     }
-  }, [roomsData, watchedRoomId]);
+  }, [roomTypesData, watchedRoomTypeId]);
+
+  // Clear selected room type if guest count exceeds room capacity or if no rooms available
+  useEffect(() => {
+    if (selectedRoomType) {
+      const availableCount = roomAvailability[selectedRoomType.id] || 0;
+      if (selectedRoomType.capacity < watchedGuests || availableCount === 0) {
+        setSelectedRoomType(null);
+        setValue('roomTypeId', '');
+      }
+    }
+  }, [selectedRoomType, watchedGuests, roomAvailability, setValue]);
 
   useEffect(() => {
     setValue('checkIn', checkInDate);
@@ -96,8 +181,8 @@ export default function NewReservation() {
   };
 
   const onSubmit = async (data: ReservationFormData) => {
-    if (!selectedRoom) {
-      setError('roomId', { message: 'Prosím vyberte izbu' });
+    if (!selectedRoomType) {
+      setError('roomTypeId', { message: 'Prosím vyberte typ izby' });
       return;
     }
 
@@ -107,7 +192,6 @@ export default function NewReservation() {
     }
 
     const nights = calculateNights(checkInDate, checkOutDate);
-    const totalPrice = calculateTotal(selectedRoom.price, nights);
 
     // Sanitize form data
     const sanitizedData = {
@@ -115,7 +199,7 @@ export default function NewReservation() {
       guestLastName: sanitizeString(data.guestLastName),
       guestEmail: sanitizeEmail(data.guestEmail),
       guestPhone: sanitizePhone(data.guestPhone),
-      numberOfGuests: sanitizeNumber(data.numberOfGuests, 1, 10),
+      guests: sanitizeNumber(data.guests, 1, 10),
       specialRequests: data.specialRequests ? sanitizeTextarea(data.specialRequests) : '',
     };
 
@@ -127,18 +211,17 @@ export default function NewReservation() {
             guestLastName: sanitizedData.guestLastName,
             guestEmail: sanitizedData.guestEmail,
             guestPhone: sanitizedData.guestPhone,
-            roomId: selectedRoom.id,
+            roomTypeId: selectedRoomType.id,
             checkIn: checkInDate.toISOString(),
             checkOut: checkOutDate.toISOString(),
-            numberOfGuests: sanitizedData.numberOfGuests,
-            totalPrice,
+            guests: sanitizedData.guests,
             specialRequests: sanitizedData.specialRequests,
           },
         },
       });
 
       if (result.data?.createReservation) {
-        router.push(`/admin/reservations`);
+        router.push(`/admin/reservations?refresh=${Date.now()}`);
       }
     } catch (error: unknown) {
       console.error('Reservation creation error:', error);
@@ -157,10 +240,13 @@ export default function NewReservation() {
     );
   }
 
-  const rooms: Room[] = roomsData?.rooms || [];
-  const availableRooms = rooms.filter(room => room.isAvailable);
+  const roomTypes: RoomType[] = roomTypesData?.roomTypes || [];
+  
+  // Filter room types by guest capacity and active status
+  const filteredRoomTypes = roomTypes.filter(rt => rt.isActive && rt.capacity >= watchedGuests);
+  
   const nights = calculateNights(checkInDate, checkOutDate);
-  const totalPrice = selectedRoom ? calculateTotal(selectedRoom.price, nights) : 0;
+  const totalPrice = selectedRoomType ? calculateTotal(selectedRoomType.price, nights) : 0;
 
   return (
     <div className="min-h-screen bg-secondary-50">
@@ -272,7 +358,7 @@ export default function NewReservation() {
                     type="number"
                     min="1"
                     max="10"
-                    {...register('numberOfGuests', {
+                    {...register('guests', {
                       required: 'Počet hostí je povinný',
                       min: { value: 1, message: 'Minimálne 1 hosť je povinný' },
                       max: {
@@ -280,7 +366,7 @@ export default function NewReservation() {
                         message: 'Maximálne 10 hostí je povolené',
                       },
                     })}
-                    error={errors.numberOfGuests?.message}
+                    error={errors.guests?.message}
                   />
                 </div>
               </div>
@@ -289,7 +375,7 @@ export default function NewReservation() {
             {/* Booking Details */}
             <div className="bg-white p-6 rounded-lg shadow-sm">
               <div className="flex items-center mb-4">
-                <HotelIcon className="h-5 w-5 text-green-500 mr-2" />
+                <HotelIcon className="h-5 w-5 text-success-500 mr-2" />
                 <h2 className="text-lg font-semibold text-secondary-900">
                   Detaily rezervácie
                 </h2>
@@ -305,10 +391,21 @@ export default function NewReservation() {
                     <DatePicker
                       selected={checkInDate}
                       onChange={(date: Date | null) => {
-                        if (date) setCheckInDate(date);
+                        if (date) {
+                          setCheckInDate(date);
+                          // Clear selected room type and availability when dates change
+                          setSelectedRoomType(null);
+                          setValue('roomTypeId', '');
+                          setRoomAvailability({});
+                          // Auto-adjust checkout if it's before the new check-in
+                          if (checkOutDate && checkOutDate <= date) {
+                            const newCheckOut = getMinCheckOutDate(date);
+                            setCheckOutDate(newCheckOut);
+                          }
+                        }
                       }}
                       minDate={getMinCheckInDate()}
-                      className="w-full px-3 py-2 border border-secondary-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-info-500"
+                      className="w-full px-3 py-2 border border-secondary-300 bg-background text-secondary-900 rounded-md shadow-sm focus:ring-info-500 focus:border-info-500"
                       dateFormat="MMM dd, yyyy"
                     />
                   </div>
@@ -319,10 +416,16 @@ export default function NewReservation() {
                     <DatePicker
                       selected={checkOutDate}
                       onChange={(date: Date | null) => {
-                        if (date) setCheckOutDate(date);
+                        if (date) {
+                          setCheckOutDate(date);
+                          // Clear selected room type and availability when dates change
+                          setSelectedRoomType(null);
+                          setValue('roomTypeId', '');
+                          setRoomAvailability({});
+                        }
                       }}
                       minDate={getMinCheckOutDate(checkInDate)}
-                      className="w-full px-3 py-2 border border-secondary-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-info-500"
+                      className="w-full px-3 py-2 border border-secondary-300 bg-background text-secondary-900 rounded-md shadow-sm focus:ring-info-500 focus:border-info-500"
                       dateFormat="MMM dd, yyyy"
                     />
                   </div>
@@ -331,31 +434,43 @@ export default function NewReservation() {
                 {/* Room Selection */}
                 <div>
                   <label className="block text-sm font-medium text-secondary-700 mb-1">
-                    Izba *
+                    Typ izby *
                   </label>
-                  {roomsLoading ? (
-                    <div className="text-sm text-secondary-500">
-                      Načítavam izby...
+                  {roomTypesLoading || loadingAvailability ? (
+                    <div className="text-sm text-secondary-500 py-2">
+                      <div className="flex items-center">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-info-600 mr-2"></div>
+                        {roomTypesLoading ? 'Načítavam typy izieb...' : 'Načítavam dostupnosť izieb pre vybrané dátumy...'}
+                      </div>
                     </div>
                   ) : (
                     <select
-                      {...register('roomId', {
-                        required: 'Prosím vyberte izbu',
+                      {...register('roomTypeId', {
+                        required: 'Prosím vyberte typ izby',
                       })}
-                      className="w-full px-3 py-2 border border-secondary-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-info-500"
+                      className="w-full px-3 py-2 border border-secondary-300 bg-background text-secondary-900 rounded-md shadow-sm focus:ring-info-500 focus:border-info-500"
                     >
-                      <option value="">Vyberte izbu...</option>
-                      {availableRooms.map((room) => (
-                        <option key={room.id} value={room.id}>
-                          Izba {room.roomNumber} - {room.type} (
-                          {formatCurrency(room.price)}/noc)
-                        </option>
-                      ))}
+                      <option value="">Vyberte typ izby...</option>
+                      {filteredRoomTypes.map((roomType) => {
+                        const availableCount = roomAvailability[roomType.id] ?? 0;
+                        const isDisabled = availableCount === 0;
+                        
+                        return (
+                          <option 
+                            key={roomType.id} 
+                            value={roomType.id}
+                            disabled={isDisabled}
+                            style={isDisabled ? { color: '#9ca3af', fontStyle: 'italic' } : {}}
+                          >
+                            {roomType.name} - {roomType.capacity} hostí ({formatCurrency(roomType.price)}/noc) - {availableCount} voľných
+                          </option>
+                        );
+                      })}
                     </select>
                   )}
-                  {errors.roomId && (
+                  {errors.roomTypeId && (
                     <p className="mt-1 text-sm text-error-600">
-                      {errors.roomId.message}
+                      {errors.roomTypeId.message}
                     </p>
                   )}
                 </div>
@@ -368,7 +483,7 @@ export default function NewReservation() {
                   <textarea
                     {...register('specialRequests')}
                     rows={3}
-                    className="w-full px-3 py-2 border border-secondary-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-info-500"
+                    className="w-full px-3 py-2 border border-secondary-300 bg-background text-secondary-900 rounded-md shadow-sm focus:ring-info-500 focus:border-info-500"
                     placeholder="Ľubovolné špeciálne požiadavky alebo poznámky..."
                   />
                 </div>
@@ -377,7 +492,7 @@ export default function NewReservation() {
           </div>
 
           {/* Booking Summary */}
-          {selectedRoom && (
+          {selectedRoomType && (
             <div className="bg-white p-6 rounded-lg shadow-sm">
               <h3 className="text-lg font-semibold text-secondary-900 mb-4">
                 Súhrn rezervácie
@@ -385,16 +500,16 @@ export default function NewReservation() {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span>
-                    Izba {selectedRoom.roomNumber} ({selectedRoom.type})
+                    {selectedRoomType.name} ({selectedRoomType.capacity} hostí)
                   </span>
-                  <span>{formatCurrency(selectedRoom.price)}/noc</span>
+                  <span>{formatCurrency(selectedRoomType.price)}/noc</span>
                 </div>
                 <div className="flex justify-between">
                   <span>
                     {nights}{' '}
                     {nights === 1 ? 'noc' : nights < 5 ? 'noci' : 'nocí'}
                   </span>
-                  <span>{formatCurrency(selectedRoom.price * nights)}</span>
+                  <span>{formatCurrency(selectedRoomType.price * nights)}</span>
                 </div>
                 <div className="border-t pt-2 flex justify-between font-semibold">
                   <span>Celkom</span>

@@ -34,7 +34,7 @@ export function useCart() {
       // Check if item already exists
       const existingItemIndex = prevItems.findIndex(
         existingItem => 
-          existingItem.room.id === item.room.id &&
+          existingItem.roomType.id === item.roomType.id &&
           existingItem.checkIn === item.checkIn &&
           existingItem.checkOut === item.checkOut
       );
@@ -51,18 +51,18 @@ export function useCart() {
     });
   }, []);
 
-  const removeFromCart = useCallback((roomId: string, checkIn: string) => {
+  const removeFromCart = useCallback((roomTypeId: string, checkIn: string) => {
     setCartItems(prevItems => 
       prevItems.filter(item => 
-        !(item.room.id === roomId && item.checkIn === checkIn)
+        !(item.roomType.id === roomTypeId && item.checkIn === checkIn)
       )
     );
   }, []);
 
-  const updateCartItem = useCallback((roomId: string, checkIn: string, updates: Partial<CartItem>) => {
+  const updateCartItem = useCallback((roomTypeId: string, checkIn: string, updates: Partial<CartItem>) => {
     setCartItems(prevItems => 
       prevItems.map(item => 
-        item.room.id === roomId && item.checkIn === checkIn
+        item.roomType.id === roomTypeId && item.checkIn === checkIn
           ? { ...item, ...updates }
           : item
       )
@@ -81,9 +81,9 @@ export function useCart() {
     return cartItems.reduce((total, item) => total + item.subtotal, 0);
   }, [cartItems]);
 
-  const isInCart = useCallback((roomId: string, checkIn: string, checkOut: string) => {
+  const isInCart = useCallback((roomTypeId: string, checkIn: string, checkOut: string) => {
     return cartItems.some(item => 
-      item.room.id === roomId && 
+      item.roomType.id === roomTypeId && 
       item.checkIn === checkIn && 
       item.checkOut === checkOut
     );

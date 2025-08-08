@@ -92,7 +92,7 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
                 onChange={handleCheckInChange}
                 minDate={getMinCheckInDate()}
                 placeholderText="Vybrat datum"
-                className="w-full h-10 px-3 py-2 border bg-white border-secondary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-secondary-900 placeholder-secondary-500"
+                className="w-full h-10 px-3 py-2 border bg-background border-secondary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-secondary-900 placeholder:text-secondary-400"
                 dateFormat="MMM dd, yyyy"
               />
               <CalendarIcon className="absolute right-3 top-3 h-4 w-4 text-secondary-400 pointer-events-none" />
@@ -117,7 +117,7 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
                   checkIn ? getMinCheckOutDate(checkIn) : getMinCheckInDate()
                 }
                 placeholderText="Vybrat datum"
-                className="w-full h-10 px-3 py-2 border bg-white border-secondary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-secondary-900 placeholder-secondary-500"
+                className="w-full h-10 px-3 py-2 border bg-background border-secondary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-secondary-900 placeholder:text-secondary-400"
                 dateFormat="MMM dd, yyyy"
               />
               <CalendarIcon className="absolute right-3 top-3 h-4 w-4 text-secondary-400 pointer-events-none" />

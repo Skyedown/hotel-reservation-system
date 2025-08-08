@@ -46,10 +46,10 @@ export function ConfirmationStep({
               <div className="flex justify-between items-start mb-3">
                 <div>
                   <h4 className="font-semibold text-secondary-900">
-                    {getRoomTypeLabel(reservation.room?.type || 'STANDARD')}
+                    {getRoomTypeLabel(reservation.roomType?.name || 'STANDARD')}
                   </h4>
                   <p className="text-secondary-600">
-                    Room {reservation.room?.roomNumber}
+                    Room {reservation.actualRoom?.roomNumber || 'TBD'}
                   </p>
                   <p className="text-sm text-primary-700 font-mono bg-primary-100 inline-block px-2 py-1 rounded mt-1">
                     Confirmation: #

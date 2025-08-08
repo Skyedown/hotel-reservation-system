@@ -1,22 +1,22 @@
 'use client';
 
 import { RoomCard } from '@/components/room/RoomCard';
-import { Room, CartItem } from '@/lib/types';
+import { RoomType, CartItem } from '@/lib/types';
 import { getTodayLocalDateString, getTomorrowLocalDateString } from '@/lib/utils';
 
 interface RoomsListProps {
-  rooms: Room[];
-  filteredRooms: Room[];
+  roomTypes: RoomType[];
+  filteredRoomTypes: RoomType[];
   loading: boolean;
   cartItems: CartItem[];
-  onViewDetails: (room: Room) => void;
+  onViewDetails: (roomType: RoomType) => void;
   onAddToCart: (item: CartItem) => void;
-  isInCart?: (roomId: string, checkIn: string, checkOut: string) => boolean;
+  isInCart?: (roomTypeId: string, checkIn: string, checkOut: string) => boolean;
 }
 
 export function RoomsList({
-  rooms,
-  filteredRooms,
+  roomTypes,
+  filteredRoomTypes,
   loading,
   onViewDetails,
   onAddToCart,
@@ -28,7 +28,7 @@ export function RoomsList({
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-3xl font-bold text-primary-800">Dostupné izby</h2>
           <div className="text-sm text-secondary-600">
-            Zobrazuje sa {filteredRooms.length} z {rooms.length} izieb
+            Zobrazuje sa {filteredRoomTypes.length} z {roomTypes.length} typov izieb
           </div>
         </div>
         
@@ -47,18 +47,18 @@ export function RoomsList({
               </div>
             ))}
           </div>
-        ) : filteredRooms.length > 0 ? (
+        ) : filteredRoomTypes.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredRooms.map((room) => (
+            {filteredRoomTypes.map((roomType) => (
               <RoomCard
-                key={room.id}
-                room={room}
+                key={roomType.id}
+                roomType={roomType}
                 checkIn={getTodayLocalDateString()}
                 checkOut={getTomorrowLocalDateString()}
                 guests={1}
                 onViewDetails={onViewDetails}
                 onAddToCart={onAddToCart}
-                isInCart={isInCart(room.id, getTodayLocalDateString(), getTomorrowLocalDateString())}
+                isInCart={isInCart(roomType.id, getTodayLocalDateString(), getTomorrowLocalDateString())}
               />
             ))}
           </div>

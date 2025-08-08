@@ -38,13 +38,12 @@ export function ReviewStep({
       
       <div className="space-y-6">
         {cartItems.map((item) => (
-          <div key={item.room.id} className="border rounded-lg p-4">
+          <div key={item.roomType.id} className="border rounded-lg p-4">
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h3 className="text-lg font-semibold text-secondary-900">
-                  {getRoomTypeLabel(item.room.type)}
+                  {getRoomTypeLabel(item.roomType.name)}
                 </h3>
-                <p className="text-secondary-600">Room {item.room.roomNumber}</p>
               </div>
               <div className="text-right">
                 <div className="text-xl font-bold text-primary-600">
@@ -81,7 +80,7 @@ export function ReviewStep({
               <div className="flex items-center text-secondary-600">
                 <div>
                   <div>Cena</div>
-                  <div className="font-medium">{formatCurrency(item.room.price)}/noc</div>
+                  <div className="font-medium">{formatCurrency(item.roomType.price)}/noc</div>
                 </div>
               </div>
             </div>

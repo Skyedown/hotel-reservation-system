@@ -1,27 +1,39 @@
 // Enums
-export type RoomType = 'STANDARD' | 'DELUXE' | 'SUITE' | 'PRESIDENTIAL';
 export type ReservationStatus = 'PENDING' | 'CONFIRMED' | 'CHECKED_IN' | 'CHECKED_OUT' | 'CANCELLED';
 export type PaymentStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'REFUNDED';
 export type AdminRole = 'STAFF' | 'ADMIN';
 
 // Core Types
-export interface Room {
+export interface RoomType {
   id: string;
-  roomNumber: string;
-  type: RoomType;
+  name: string;
   description: string;
   price: number;
   capacity: number;
   amenities: string[];
   images: string[];
-  isAvailable: boolean;
+  isActive: boolean;
   createdAt?: string;
   updatedAt?: string;
+  rooms?: ActualRoom[];
+}
+
+export interface ActualRoom {
+  id: string;
+  roomNumber: string;
+  roomTypeId: string;
+  isAvailable: boolean;
+  isUnderMaintenance: boolean;
+  maintenanceNotes?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  roomType?: RoomType;
 }
 
 export interface Reservation {
   id: string;
-  roomId: string;
+  roomTypeId: string;
+  actualRoomId?: string;
   guestEmail: string;
   guestFirstName: string;
   guestLastName: string;
@@ -39,7 +51,8 @@ export interface Reservation {
   lastStatusChange?: string;
   createdAt?: string;
   updatedAt?: string;
-  room?: Room;
+  roomType?: RoomType;
+  actualRoom?: ActualRoom;
   payments?: Payment[];
 }
 
@@ -93,20 +106,27 @@ export interface AdminLoginInput {
   password: string;
 }
 
-export interface RoomFormData {
-  roomNumber: string;
-  type: RoomType;
+export interface RoomTypeFormData {
+  name: string;
   description: string;
   price: number;
   capacity: number;
   amenities: string[];
   images: string[];
+  isActive: boolean;
+}
+
+export interface ActualRoomFormData {
+  roomNumber: string;
+  roomTypeId: string;
   isAvailable: boolean;
+  isUnderMaintenance: boolean;
+  maintenanceNotes?: string;
 }
 
 // Input Types for GraphQL
 export interface CreateReservationInput {
-  roomId: string;
+  roomTypeId: string;
   guestEmail: string;
   guestFirstName: string;
   guestLastName: string;
@@ -127,33 +147,35 @@ export interface CreateMultiRoomReservationInput {
 }
 
 export interface RoomReservationInput {
-  roomId: string;
+  roomTypeId: string;
   checkIn: string;
   checkOut: string;
   guests: number;
 }
 
-
-export interface UpdateRoomInput {
-  roomNumber?: string;
-  type?: RoomType;
-  description?: string;
-  price?: number;
-  capacity?: number;
-  amenities?: string[];
-  images?: string[];
-  isAvailable?: boolean;
-}
-
-export interface CreateRoomInput {
-  roomNumber: string;
-  type: RoomType;
+export interface CreateRoomTypeInput {
+  name: string;
   description: string;
   price: number;
   capacity: number;
   amenities: string[];
   images: string[];
-  isAvailable: boolean;
+  isActive?: boolean;
+}
+
+export interface CreateActualRoomInput {
+  roomNumber: string;
+  roomTypeId: string;
+  isAvailable?: boolean;
+  isUnderMaintenance?: boolean;
+  maintenanceNotes?: string;
+}
+
+export interface UpdateActualRoomInput {
+  roomNumber?: string;
+  isAvailable?: boolean;
+  isUnderMaintenance?: boolean;
+  maintenanceNotes?: string;
 }
 
 // Response Types
@@ -172,7 +194,7 @@ export interface DashboardStats {
 
 // Cart Types for Multiple Room Selection
 export interface CartItem {
-  room: Room;
+  roomType: RoomType;
   checkIn: string;
   checkOut: string;
   guests: number;
@@ -189,7 +211,7 @@ export interface Cart {
 // UI State Types
 export interface SearchState {
   isLoading: boolean;
-  rooms: Room[];
+  roomTypes: RoomType[];
   error?: string;
 }
 

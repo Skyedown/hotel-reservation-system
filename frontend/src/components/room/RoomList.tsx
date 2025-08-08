@@ -1,24 +1,24 @@
 'use client';
 
-import { Room, CartItem } from '@/lib/types';
+import { RoomType, CartItem } from '@/lib/types';
 import { RoomCard } from './RoomCard';
 import { RoomDetailsModal } from './RoomDetailsModal';
 import { useState } from 'react';
 
 interface RoomListProps {
-  rooms: Room[];
+  roomTypes: RoomType[];
   checkIn: string;
   checkOut: string;
   guests: number;
   onAddToCart: (item: CartItem) => void;
   cartItems: CartItem[];
   isLoading?: boolean;
-  isInCart?: (roomId: string, checkIn: string, checkOut: string) => boolean;
+  isInCart?: (roomTypeId: string, checkIn: string, checkOut: string) => boolean;
   onCartAdded?: () => void;
 }
 
 export function RoomList({ 
-  rooms, 
+  roomTypes, 
   checkIn, 
   checkOut, 
   guests, 
@@ -27,18 +27,18 @@ export function RoomList({
   isInCart = () => false,
   onCartAdded
 }: RoomListProps) {
-  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  const [selectedRoomType, setSelectedRoomType] = useState<RoomType | null>(null);
 
-  const handleViewDetails = (room: Room) => {
-    setSelectedRoom(room);
+  const handleViewDetails = (roomType: RoomType) => {
+    setSelectedRoomType(roomType);
   };
 
   const closeModal = () => {
-    setSelectedRoom(null);
+    setSelectedRoomType(null);
   };
 
-  const isRoomInCart = (roomId: string) => {
-    return isInCart(roomId, checkIn, checkOut);
+  const isRoomTypeInCart = (roomTypeId: string) => {
+    return isInCart(roomTypeId, checkIn, checkOut);
   };
 
   if (isLoading) {
@@ -60,15 +60,15 @@ export function RoomList({
     );
   }
 
-  if (rooms.length === 0) {
+  if (roomTypes.length === 0) {
     return (
       <div className="text-center py-12">
         <div className="text-secondary-400 text-6xl mb-4">🏨</div>
         <h3 className="text-xl font-semibold text-secondary-900 mb-2">
-          Žiadne izby nie sú dostupné
+          Žiadne typy izieb nie sú dostupné
         </h3>
         <p className="text-secondary-600 mb-4">
-          Pre vaše vybrané dátumy a počet hostí nie sú dostupné žiadne izby.
+          Pre vaše vybrané dátumy a počet hostí nie sú dostupné žiadne typy izieb.
         </p>
         <p className="text-sm text-secondary-500">
           Skúste upraviť vaše dátumy alebo znížiť počet hostí.
@@ -80,30 +80,30 @@ export function RoomList({
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {rooms.map((room) => (
+        {roomTypes.map((roomType) => (
           <RoomCard
-            key={room.id}
-            room={room}
+            key={roomType.id}
+            roomType={roomType}
             checkIn={checkIn}
             checkOut={checkOut}
             guests={guests}
             onViewDetails={handleViewDetails}
             onAddToCart={onAddToCart}
-            isInCart={isRoomInCart(room.id)}
+            isInCart={isRoomTypeInCart(roomType.id)}
           />
         ))}
       </div>
 
       {/* Room Details Modal */}
-      {selectedRoom && (
+      {selectedRoomType && (
         <RoomDetailsModal
-          room={selectedRoom}
+          roomType={selectedRoomType}
           checkIn={checkIn}
           checkOut={checkOut}
           guests={guests}
           onClose={closeModal}
           onAddToCart={onAddToCart}
-          isInCart={isRoomInCart(selectedRoom.id)}
+          isInCart={isRoomTypeInCart(selectedRoomType.id)}
           onCartAdded={onCartAdded}
         />
       )}

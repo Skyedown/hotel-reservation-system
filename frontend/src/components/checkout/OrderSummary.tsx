@@ -42,9 +42,9 @@ export function OrderSummary({
       
       <div className="pt-4 space-y-2">
         {cartItems.map((item) => (
-          <div key={item.room.id} className="flex justify-between text-sm">
+          <div key={item.roomType.id} className="flex justify-between text-sm">
             <span className="text-secondary-600">
-              {getRoomTypeLabel(item.room.type)} × {item.nights}
+              {getRoomTypeLabel(item.roomType.name)} × {item.nights}
             </span>
             <span>{formatCurrency(item.subtotal)}</span>
           </div>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { CartItem } from '@/lib/types';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, getRoomTypeLabel } from '@/lib/utils';
 import { CheckCircleIcon, X, ShoppingCartIcon } from 'lucide-react';
 import Link from 'next/link';
 
@@ -64,7 +64,7 @@ export function CartNotification({ isVisible, cartItems, onClose }: CartNotifica
         {latestItem && (
           <div className="mb-3 p-2 bg-primary-50 rounded border border-primary-200">
             <p className="font-medium text-secondary-900 text-sm">
-              {latestItem.room.type} - {latestItem.room.roomNumber}
+              {getRoomTypeLabel(latestItem.roomType.name)}
             </p>
             <p className="text-xs text-secondary-600">
               {new Date(latestItem.checkIn).toLocaleDateString()} - {new Date(latestItem.checkOut).toLocaleDateString()}

@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
-import { Room, CartItem } from '@/lib/types';
+import { RoomType, CartItem } from '@/lib/types';
 import { formatCurrency, getRoomTypeLabel, calculateNights, calculateTotal } from '@/lib/utils';
 import { 
   X, 
@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 
 interface RoomDetailsModalProps {
-  room: Room;
+  roomType: RoomType;
   checkIn: string;
   checkOut: string;
   guests: number;
@@ -40,7 +40,7 @@ const amenityIcons: Record<string, React.ComponentType<{ className?: string }>> 
 };
 
 export function RoomDetailsModal({ 
-  room, 
+  roomType, 
   checkIn, 
   checkOut, 
   guests, 
@@ -52,7 +52,7 @@ export function RoomDetailsModal({
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const modalRef = useRef<HTMLDivElement>(null);
   const nights = calculateNights(checkIn, checkOut);
-  const totalPrice = calculateTotal(room.price, nights);
+  const totalPrice = calculateTotal(roomType.price, nights);
 
   // Close modal on escape key
   useEffect(() => {
@@ -75,19 +75,19 @@ export function RoomDetailsModal({
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => 
-      prev === room.images.length - 1 ? 0 : prev + 1
+      prev === roomType.images.length - 1 ? 0 : prev + 1
     );
   };
 
   const prevImage = () => {
     setCurrentImageIndex((prev) => 
-      prev === 0 ? room.images.length - 1 : prev - 1
+      prev === 0 ? roomType.images.length - 1 : prev - 1
     );
   };
 
   const handleAddToCart = () => {
     const cartItem: CartItem = {
-      room,
+      roomType,
       checkIn,
       checkOut,
       guests,
@@ -114,9 +114,8 @@ export function RoomDetailsModal({
         <div className="flex justify-between items-center p-6 border-b">
           <div>
             <h2 className="text-2xl font-bold text-secondary-900">
-              {getRoomTypeLabel(room.type)}
+              {getRoomTypeLabel(roomType.name)}
             </h2>
-            <p className="text-secondary-600">Izba {room.roomNumber}</p>
           </div>
           <button
             onClick={onClose}
@@ -129,15 +128,15 @@ export function RoomDetailsModal({
         <div className="p-6">
           {/* Image Gallery */}
           <div className="relative h-80 bg-secondary-200 rounded-lg mb-6">
-            {room.images.length > 0 ? (
+            {roomType.images.length > 0 ? (
               <>
                 <Image
-                  src={room.images[currentImageIndex]}
-                  alt={`${room.type} - ${room.roomNumber}`}
+                  src={roomType.images[currentImageIndex]}
+                  alt={roomType.name}
                   fill
                   className="object-cover rounded-lg"
                 />
-                {room.images.length > 1 && (
+                {roomType.images.length > 1 && (
                   <>
                     <button
                       onClick={prevImage}
@@ -155,9 +154,9 @@ export function RoomDetailsModal({
                 )}
 
                 {/* Image thumbnails */}
-                {room.images.length > 1 && (
+                {roomType.images.length > 1 && (
                   <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-                    {room.images.map((_, index) => (
+                    {roomType.images.map((_, index) => (
                       <button
                         key={index}
                         onClick={() => setCurrentImageIndex(index)}
@@ -186,7 +185,7 @@ export function RoomDetailsModal({
                   Description
                 </h3>
                 <p className="text-secondary-700 leading-relaxed">
-                  {room.description}
+                  {roomType.description}
                 </p>
               </div>
 
@@ -197,10 +196,10 @@ export function RoomDetailsModal({
                   <div>
                     <p className="font-medium text-secondary-900">Kapacita</p>
                     <p className="text-sm text-secondary-600">
-                      Až {room.capacity}{' '}
-                      {room.capacity === 1
+                      Až {roomType.capacity}{' '}
+                      {roomType.capacity === 1
                         ? 'hosť'
-                        : room.capacity < 5
+                        : roomType.capacity < 5
                         ? 'hostia'
                         : 'hostí'}
                     </p>
@@ -209,7 +208,7 @@ export function RoomDetailsModal({
                 <div>
                   <p className="font-medium text-secondary-900">Typ izby</p>
                   <p className="text-sm text-secondary-600">
-                    {getRoomTypeLabel(room.type)}
+                    {getRoomTypeLabel(roomType.name)}
                   </p>
                 </div>
               </div>
@@ -220,7 +219,7 @@ export function RoomDetailsModal({
                   Vybavenie
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
-                  {room.amenities.map((amenity) => {
+                  {roomType.amenities.map((amenity) => {
                     const IconComponent = amenityIcons[amenity] || CoffeeIcon;
                     return (
                       <div key={amenity} className="flex items-center">
@@ -238,7 +237,7 @@ export function RoomDetailsModal({
               <div className="bg-secondary-50 rounded-lg p-6 sticky top-6">
                 <div className="text-center mb-4">
                   <div className="text-3xl font-bold text-info-600">
-                    {formatCurrency(room.price)}
+                    {formatCurrency(roomType.price)}
                   </div>
                   <p className="text-sm text-secondary-600">za noc</p>
                 </div>
@@ -279,18 +278,18 @@ export function RoomDetailsModal({
                   onClick={handleAddToCart}
                   className="w-full"
                   size="lg"
-                  disabled={isInCart || room.capacity < guests}
+                  disabled={isInCart || roomType.capacity < guests}
                 >
                   <ShoppingCartIcon className="h-5 w-5 mr-2" />
                   {isInCart ? 'Pridané do košíka' : 'Pridať do košíka'}
                 </Button>
 
-                {room.capacity < guests && (
+                {roomType.capacity < guests && (
                   <p className="text-sm text-error-600 mt-3 text-center">
-                    Táto izba môže ubytovať len {room.capacity}{' '}
-                    {room.capacity === 1
+                    Táto izba môže ubytovať len {roomType.capacity}{' '}
+                    {roomType.capacity === 1
                       ? 'hosťa'
-                      : room.capacity < 5
+                      : roomType.capacity < 5
                       ? 'hostí'
                       : 'hostí'}
                   </p>

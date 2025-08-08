@@ -7,6 +7,7 @@ import { GET_RESERVATION_BY_ID, GET_ALL_RESERVATIONS } from '@/lib/graphql/queri
 import { UPDATE_RESERVATION_STATUS } from '@/lib/graphql/mutations';
 import { getAdminToken, removeAdminToken, formatCurrency, formatDateTime, getStatusColor, getPaymentStatusColor, getErrorMessage } from '@/lib/utils';
 import { Admin, Reservation } from '@/lib/types';
+import RoomAssignmentModal from '@/components/admin/RoomAssignmentModal';
 import { Button } from '@/components/ui/Button';
 import { 
   ArrowLeftIcon,
@@ -33,6 +34,7 @@ export default function ReservationDetailPage() {
   const [admin, setAdmin] = useState<Admin | null>(null);
   const [bookingGroup, setBookingGroup] = useState<Reservation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showRoomAssignmentModal, setShowRoomAssignmentModal] = useState(false);
 
   const { data: reservationData, loading: reservationLoading, refetch } = useQuery(GET_RESERVATION_BY_ID, {
     variables: { id: reservationId },
@@ -84,6 +86,12 @@ export default function ReservationDetailPage() {
   const handleStatusUpdate = async (newStatus: string) => {
     if (!bookingGroup.length) return;
 
+    // If confirming a PENDING reservation, show room assignment modal
+    if (newStatus === 'CONFIRMED' && primaryReservation.status === 'PENDING') {
+      setShowRoomAssignmentModal(true);
+      return;
+    }
+
     try {
       setIsLoading(true);
       
@@ -104,6 +112,10 @@ export default function ReservationDetailPage() {
       alert(`Nepodarilo sa aktualizovať rezerváciu: ${getErrorMessage(error)}`);
       setIsLoading(false);
     }
+  };
+
+  const handleRoomAssignmentSuccess = async () => {
+    await refetch();
   };
 
   const handleCancelReservation = async () => {
@@ -334,10 +346,10 @@ export default function ReservationDetailPage() {
                 {bookingGroup.map((reservation) => (
                   <div key={reservation.id} className="bg-secondary-50 p-4 rounded-lg border">
                     <div className="font-medium text-secondary-900 mb-2">
-                      Izba {reservation.room?.roomNumber || 'N/A'}
+                      Izba {reservation.actualRoom?.roomNumber || 'N/A'}
                     </div>
                     <div className="text-sm text-secondary-600 space-y-1">
-                      <div>{reservation.room?.type || 'N/A'}</div>
+                      <div>{reservation.roomType?.name || 'N/A'}</div>
                       <div>{reservation.guests} {reservation.guests === 1 ? 'hosť' : 'hostia'}</div>
                       <div className="font-medium text-secondary-900">{formatCurrency(reservation.totalPrice)}</div>
                     </div>
@@ -366,12 +378,12 @@ export default function ReservationDetailPage() {
               <div>
                 <div className="text-sm text-secondary-600">Izba</div>
                 <div className="font-medium text-secondary-900 text-lg">
-                  Izba {primaryReservation.room?.roomNumber || 'N/A'} - {primaryReservation.room?.type || 'N/A'}
+                  Izba {primaryReservation.actualRoom?.roomNumber || 'N/A'} - {primaryReservation.roomType?.name || 'N/A'}
                 </div>
               </div>
               <div>
                 <div className="text-sm text-secondary-600">Kapacita</div>
-                <div className="font-medium text-secondary-900">{primaryReservation.room?.capacity || 0} hostí</div>
+                <div className="font-medium text-secondary-900">{primaryReservation.roomType?.capacity || 0} hostí</div>
               </div>
               <div className="flex items-center">
                 <CalendarIcon className="h-4 w-4 text-secondary-400 mr-2" />
@@ -445,6 +457,14 @@ export default function ReservationDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Room Assignment Modal */}
+      <RoomAssignmentModal
+        isOpen={showRoomAssignmentModal}
+        onClose={() => setShowRoomAssignmentModal(false)}
+        reservations={bookingGroup}
+        onSuccess={handleRoomAssignmentSuccess}
+      />
     </div>
   );
 }

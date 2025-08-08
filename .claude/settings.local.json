@@ -21,7 +21,11 @@
       "Bash(docker compose logs:*)",
       "Bash(ls:*)",
       "Bash(docker compose:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx eslint:*)",
+      "Bash(grep:*)",
+      "Bash(npm run type-check:*)"
     ],
     "deny": []
   }

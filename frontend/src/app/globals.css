@@ -94,6 +94,14 @@
   /* Fonts */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  
+  /* Form Colors */
+  --color-form-input-bg: var(--background);
+  --color-form-input-text: var(--color-secondary-900);
+  --color-form-input-border: var(--color-secondary-300);
+  --color-form-input-border-focus: var(--color-info-500);
+  --color-form-placeholder: var(--color-secondary-400);
+  --color-form-label: var(--color-secondary-700);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -107,4 +115,38 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Global Form Styles */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="password"],
+input[type="number"],
+textarea,
+select {
+  color: var(--color-form-input-text) !important;
+  background-color: var(--color-form-input-bg) !important;
+  border-color: var(--color-form-input-border) !important;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="tel"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--color-form-input-border-focus) !important;
+  outline: 2px solid var(--color-form-input-border-focus) !important;
+  outline-offset: 2px !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-form-placeholder) !important;
+}
+
+label {
+  color: var(--color-form-label) !important;
 }

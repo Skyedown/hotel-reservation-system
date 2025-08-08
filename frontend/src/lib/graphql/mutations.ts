@@ -14,10 +14,13 @@ export const CREATE_RESERVATION = gql`
       guests
       totalPrice
       status
-      room {
+      roomType {
+        id
+        name
+      }
+      actualRoom {
         id
         roomNumber
-        type
       }
     }
   }
@@ -37,10 +40,13 @@ export const CREATE_MULTI_ROOM_RESERVATION = gql`
       totalPrice
       status
       paymentIntentId
-      room {
+      roomType {
+        id
+        name
+      }
+      actualRoom {
         id
         roomNumber
-        type
       }
     }
   }
@@ -88,63 +94,91 @@ export const UPDATE_RESERVATION_STATUS = gql`
   }
 `;
 
-export const CREATE_ADMIN_RESERVATION = gql`
-  mutation CreateAdminReservation($input: CreateReservationInput!) {
-    createAdminReservation(input: $input) {
+// Room Type Management
+export const CREATE_ROOM_TYPE = gql`
+  mutation CreateRoomType($input: CreateRoomTypeInput!) {
+    createRoomType(input: $input) {
       id
-      accessToken
-      guestEmail
-      guestFirstName
-      guestLastName
-      checkIn
-      checkOut
-      guests
-      totalPrice
-      status
-      room {
+      name
+      description
+      price
+      capacity
+      amenities
+      images
+      isActive
+    }
+  }
+`;
+
+export const UPDATE_ROOM_TYPE = gql`
+  mutation UpdateRoomType($id: ID!, $input: CreateRoomTypeInput!) {
+    updateRoomType(id: $id, input: $input) {
+      id
+      name
+      description
+      price
+      capacity
+      amenities
+      images
+      isActive
+    }
+  }
+`;
+
+export const DELETE_ROOM_TYPE = gql`
+  mutation DeleteRoomType($id: ID!) {
+    deleteRoomType(id: $id)
+  }
+`;
+
+// Actual Room Management
+export const CREATE_ACTUAL_ROOM = gql`
+  mutation CreateActualRoom($input: CreateActualRoomInput!) {
+    createActualRoom(input: $input) {
+      id
+      roomNumber
+      isAvailable
+      isUnderMaintenance
+      maintenanceNotes
+      roomType {
         id
-        roomNumber
-        type
+        name
       }
     }
   }
 `;
 
-// Room Management
-export const UPDATE_ROOM = gql`
-  mutation UpdateRoom($id: ID!, $input: CreateRoomInput!) {
-    updateRoom(id: $id, input: $input) {
+export const UPDATE_ACTUAL_ROOM = gql`
+  mutation UpdateActualRoom($id: ID!, $input: UpdateActualRoomInput!) {
+    updateActualRoom(id: $id, input: $input) {
       id
       roomNumber
-      type
-      description
-      price
-      capacity
-      amenities
-      images
       isAvailable
+      isUnderMaintenance
+      maintenanceNotes
     }
   }
 `;
 
-export const CREATE_ROOM = gql`
-  mutation CreateRoom($input: CreateRoomInput!) {
-    createRoom(input: $input) {
-      id
-      roomNumber
-      type
-      description
-      price
-      capacity
-      amenities
-      images
-      isAvailable
-    }
+export const DELETE_ACTUAL_ROOM = gql`
+  mutation DeleteActualRoom($id: ID!) {
+    deleteActualRoom(id: $id)
   }
 `;
 
-export const DELETE_ROOM = gql`
-  mutation DeleteRoom($id: ID!) {
-    deleteRoom(id: $id)
+// Reservation Assignment
+export const ASSIGN_ROOM_TO_RESERVATION = gql`
+  mutation AssignRoomToReservation($reservationId: ID!, $actualRoomId: ID!) {
+    assignRoomToReservation(reservationId: $reservationId, actualRoomId: $actualRoomId) {
+      id
+      roomType {
+        id
+        name
+      }
+      actualRoom {
+        id
+        roomNumber
+      }
+    }
   }
 `;

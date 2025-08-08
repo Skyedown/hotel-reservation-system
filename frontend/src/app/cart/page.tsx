@@ -11,16 +11,16 @@ import { ShoppingCartIcon, ArrowLeftIcon } from 'lucide-react';
 export default function Cart() {
   const { cartItems, removeFromCart, updateCartItem, getTotalPrice, isLoading } = useCart();
 
-  const handleRemoveItem = (roomId: string, checkIn: string) => {
-    removeFromCart(roomId, checkIn);
+  const handleRemoveItem = (roomTypeId: string, checkIn: string) => {
+    removeFromCart(roomTypeId, checkIn);
   };
 
-  const handleUpdateGuests = (roomId: string, checkIn: string, newGuests: number) => {
-    const item = cartItems.find(item => item.room.id === roomId && item.checkIn === checkIn);
+  const handleUpdateGuests = (roomTypeId: string, checkIn: string, newGuests: number) => {
+    const item = cartItems.find(item => item.roomType.id === roomTypeId && item.checkIn === checkIn);
     if (item) {
-      const updatedSubtotal = item.room.price * item.nights;
-      updateCartItem(roomId, checkIn, {
-        guests: Math.max(1, Math.min(newGuests, item.room.capacity)),
+      const updatedSubtotal = item.roomType.price * item.nights;
+      updateCartItem(roomTypeId, checkIn, {
+        guests: Math.max(1, Math.min(newGuests, item.roomType.capacity)),
         subtotal: updatedSubtotal,
       });
     }
@@ -91,7 +91,7 @@ export default function Cart() {
                 <div className="divide-y divide-secondary-200">
                   {cartItems.map((item) => (
                     <CartItemCard
-                      key={item.room.id}
+                      key={item.roomType.id}
                       item={item}
                       onRemove={handleRemoveItem}
                       onUpdateGuests={handleUpdateGuests}

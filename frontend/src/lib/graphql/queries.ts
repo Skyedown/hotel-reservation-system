@@ -1,52 +1,114 @@
 import { gql } from '@apollo/client';
 
-// Room Queries
-export const GET_AVAILABLE_ROOMS = gql`
-  query GetAvailableRooms($checkIn: String!, $checkOut: String!, $guests: Int!) {
-    availableRooms(checkIn: $checkIn, checkOut: $checkOut, guests: $guests) {
+// Room Type Queries
+export const GET_AVAILABLE_ROOM_TYPES = gql`
+  query GetAvailableRoomTypes($checkIn: String!, $checkOut: String!, $guests: Int!) {
+    availableRoomTypes(checkIn: $checkIn, checkOut: $checkOut, guests: $guests) {
       id
-      roomNumber
-      type
+      name
       description
       price
       capacity
       amenities
       images
-      isAvailable
+      isActive
+      rooms {
+        id
+        roomNumber
+        isAvailable
+        isUnderMaintenance
+      }
     }
   }
 `;
 
-export const GET_ROOM_DETAILS = gql`
-  query GetRoomDetails($id: ID!) {
-    room(id: $id) {
+export const GET_ROOM_TYPE_DETAILS = gql`
+  query GetRoomTypeDetails($id: ID!) {
+    roomType(id: $id) {
       id
-      roomNumber
-      type
+      name
       description
       price
       capacity
       amenities
       images
-      isAvailable
+      isActive
+      rooms {
+        id
+        roomNumber
+        isAvailable
+        isUnderMaintenance
+      }
     }
   }
 `;
 
-export const GET_ALL_ROOMS = gql`
-  query GetAllRooms {
-    rooms {
+export const GET_ALL_ROOM_TYPES = gql`
+  query GetAllRoomTypes {
+    roomTypes {
       id
-      roomNumber
-      type
+      name
       description
       price
       capacity
       amenities
       images
-      isAvailable
+      isActive
       createdAt
       updatedAt
+      rooms {
+        id
+        roomNumber
+        isAvailable
+        isUnderMaintenance
+      }
+    }
+  }
+`;
+
+export const GET_ALL_ACTUAL_ROOMS = gql`
+  query GetAllActualRooms {
+    actualRooms {
+      id
+      roomNumber
+      isAvailable
+      isUnderMaintenance
+      maintenanceNotes
+      createdAt
+      updatedAt
+      roomType {
+        id
+        name
+        description
+        price
+        capacity
+      }
+    }
+  }
+`;
+
+export const GET_ACTUAL_ROOMS_BY_TYPE = gql`
+  query GetActualRoomsByType($roomTypeId: ID!) {
+    actualRoomsByType(roomTypeId: $roomTypeId) {
+      id
+      roomNumber
+      isAvailable
+      isUnderMaintenance
+      maintenanceNotes
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const GET_AVAILABLE_ACTUAL_ROOMS = gql`
+  query GetAvailableActualRooms($roomTypeId: ID!, $checkIn: String!, $checkOut: String!, $excludeReservationIds: [ID!]) {
+    availableActualRooms(roomTypeId: $roomTypeId, checkIn: $checkIn, checkOut: $checkOut, excludeReservationIds: $excludeReservationIds) {
+      id
+      roomNumber
+      isAvailable
+      isUnderMaintenance
+      maintenanceNotes
     }
   }
 `;
@@ -54,7 +116,7 @@ export const GET_ALL_ROOMS = gql`
 // Reservation Queries
 export const GET_RESERVATION_BY_TOKEN = gql`
   query GetReservationByToken($accessToken: String!) {
-    reservationByToken(accessToken: $accessToken) {
+    reservation(accessToken: $accessToken) {
       id
       guestEmail
       guestFirstName
@@ -68,14 +130,17 @@ export const GET_RESERVATION_BY_TOKEN = gql`
       paymentStatus
       specialRequests
       accessToken
-      room {
+      roomType {
         id
-        roomNumber
-        type
+        name
         description
         price
         amenities
         images
+      }
+      actualRoom {
+        id
+        roomNumber
       }
     }
   }
@@ -103,12 +168,22 @@ export const GET_ALL_RESERVATIONS = gql`
       createdAt
       updatedAt
       accessToken
-      room {
+      roomType {
         id
-        roomNumber
-        type
+        name
         price
         capacity
+        rooms {
+          id
+          roomNumber
+          isAvailable
+          isUnderMaintenance
+          maintenanceNotes
+        }
+      }
+      actualRoom {
+        id
+        roomNumber
       }
       payments {
         id
@@ -141,13 +216,23 @@ export const GET_RESERVATION_BY_ID = gql`
       createdAt
       updatedAt
       accessToken
-      room {
+      roomType {
         id
-        roomNumber
-        type
+        name
         price
         capacity
         description
+        rooms {
+          id
+          roomNumber
+          isAvailable
+          isUnderMaintenance
+          maintenanceNotes
+        }
+      }
+      actualRoom {
+        id
+        roomNumber
       }
       payments {
         id

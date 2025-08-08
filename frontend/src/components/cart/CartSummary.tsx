@@ -45,9 +45,9 @@ export function CartSummary({
       
       <div className="border-t pt-4 space-y-3">
         {cartItems.map((item) => (
-          <div key={item.room.id} className="flex justify-between text-sm">
+          <div key={item.roomType.id} className="flex justify-between text-sm">
             <span className="text-secondary-600">
-              {getRoomTypeLabel(item.room.type)} × {item.nights}
+              {getRoomTypeLabel(item.roomType.name)} × {item.nights}
             </span>
             <span className="font-medium">{formatCurrency(item.subtotal)}</span>
           </div>

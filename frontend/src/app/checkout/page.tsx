@@ -204,7 +204,7 @@ export default function Checkout() {
         const checkOutDate = new Date(item.checkOut + 'T11:00:00.000Z').toISOString();
 
         const reservationInput: CreateReservationInput = {
-          roomId: item.room.id,
+          roomTypeId: item.roomType.id,
           guestEmail: sanitizedFormData.guestEmail,
           guestFirstName: sanitizedFormData.guestFirstName,
           guestLastName: sanitizedFormData.guestLastName,
@@ -225,7 +225,7 @@ export default function Checkout() {
       } else {
         // Multi-room reservation
         const rooms: RoomReservationInput[] = cartItems.map(item => ({
-          roomId: item.room.id,
+          roomTypeId: item.roomType.id,
           checkIn: new Date(item.checkIn + 'T15:00:00.000Z').toISOString(),
           checkOut: new Date(item.checkOut + 'T11:00:00.000Z').toISOString(),
           guests: sanitizeNumber(item.guests, 1, 10),

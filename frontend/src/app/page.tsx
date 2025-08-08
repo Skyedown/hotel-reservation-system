@@ -6,8 +6,8 @@ import { SearchForm } from '@/components/reservation/SearchForm';
 import { RoomList } from '@/components/room/RoomList';
 import { UserLayout } from '@/components/layout/UserLayout';
 import { CartNotification } from '@/components/cart/CartNotification';
-import { GET_AVAILABLE_ROOMS } from '@/lib/graphql/queries';
-import { SearchFormData, Room, CartItem } from '@/lib/types';
+import { GET_AVAILABLE_ROOM_TYPES } from '@/lib/graphql/queries';
+import { SearchFormData, RoomType, CartItem } from '@/lib/types';
 import { useCart } from '@/hooks/useCart';
 import { toLocalDateString } from '@/lib/utils';
 
@@ -16,11 +16,11 @@ export default function Home() {
   const [showCartNotification, setShowCartNotification] = useState(false);
   const { cartItems, addToCart, isInCart } = useCart();
 
-  const [searchRooms, { data, loading, error }] = useLazyQuery(GET_AVAILABLE_ROOMS);
+  const [searchRoomTypes, { data, loading, error }] = useLazyQuery(GET_AVAILABLE_ROOM_TYPES);
 
   const handleSearch = (data: SearchFormData) => {
     setSearchData(data);
-    searchRooms({
+    searchRoomTypes({
       variables: {
         checkIn: toLocalDateString(data.checkIn),
         checkOut: toLocalDateString(data.checkOut),
@@ -39,7 +39,7 @@ export default function Home() {
   };
 
 
-  const rooms: Room[] = data?.availableRooms || [];
+  const roomTypes: RoomType[] = data?.availableRoomTypes || [];
 
   return (
     <UserLayout>
@@ -67,15 +67,15 @@ export default function Home() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="mb-8">
               <h3 className="text-2xl font-bold text-secondary-900 mb-2">
-                Dostupné izby
+                Dostupné typy izieb
               </h3>
               <p className="text-secondary-600">
                 {searchData.guests} {searchData.guests === 1 ? 'hosť' : searchData.guests < 5 ? 'hostia' : 'hostí'} • {' '}
                 {searchData.checkIn.toLocaleDateString()} - {searchData.checkOut.toLocaleDateString()}
               </p>
-              {rooms.length > 0 && (
+              {roomTypes.length > 0 && (
                 <p className="text-sm text-secondary-500 mt-1">
-                  {rooms.length} {rooms.length === 1 ? 'izba dostupná' : rooms.length < 5 ? 'izby dostupné' : 'izieb dostupných'}
+                  {roomTypes.length} {roomTypes.length === 1 ? 'typ izby dostupný' : roomTypes.length < 5 ? 'typy izieb dostupné' : 'typov izieb dostupných'}
                 </p>
               )}
             </div>
@@ -89,7 +89,7 @@ export default function Home() {
             )}
 
             <RoomList
-              rooms={rooms}
+              roomTypes={roomTypes}
               checkIn={toLocalDateString(searchData.checkIn)}
               checkOut={toLocalDateString(searchData.checkOut)}
               guests={searchData.guests}

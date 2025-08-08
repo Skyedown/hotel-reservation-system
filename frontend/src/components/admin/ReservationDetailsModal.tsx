@@ -96,7 +96,7 @@ export function ReservationDetailsModal({ isOpen, onClose, reservation, bookingG
                       <div className="flex justify-between items-center">
                         <div>
                           <div className="font-medium text-secondary-900">
-                            Izba {res.room?.roomNumber ?? 'N/A'} - {res.room?.type ?? 'N/A'}
+                            Izba {res.actualRoom?.roomNumber ?? 'N/A'} - {res.roomType?.name ?? 'N/A'}
                           </div>
                           <div className="text-sm text-secondary-600">
                             {res.guests} {res.guests === 1 ? 'hosť' : 'hostia'} • {formatCurrency(res.totalPrice)}
@@ -104,7 +104,7 @@ export function ReservationDetailsModal({ isOpen, onClose, reservation, bookingG
                         </div>
                         <div className="text-right">
                           <div className="text-sm text-secondary-600">Kapacita</div>
-                          <div className="font-medium text-secondary-900">{res.room?.capacity ?? 'N/A'}</div>
+                          <div className="font-medium text-secondary-900">{res.roomType?.capacity ?? 'N/A'}</div>
                         </div>
                       </div>
                     </div>
@@ -143,7 +143,7 @@ export function ReservationDetailsModal({ isOpen, onClose, reservation, bookingG
               <div>
                 <div className="text-sm text-secondary-600">Izba</div>
                 <div className="font-medium text-secondary-900">
-                  Izba {reservation.room?.roomNumber ?? 'N/A'} - {reservation.room?.type ?? 'N/A'}
+                  Izba {reservation.actualRoom?.roomNumber ?? 'N/A'} - {reservation.roomType?.name ?? 'N/A'}
                 </div>
               </div>
               <div>
@@ -207,8 +207,8 @@ export function ReservationDetailsModal({ isOpen, onClose, reservation, bookingG
               </div>
               <div className="font-medium text-secondary-900">
                 {isMultiRoom ? 
-                  formatCurrency(reservations.reduce((sum, res) => sum + (res.room?.price ?? 0), 0) / reservations.length) :
-                  formatCurrency(reservation.room?.price ?? 0)
+                  formatCurrency(reservations.reduce((sum, res) => sum + (res.roomType?.price ?? 0), 0) / reservations.length) :
+                  formatCurrency(reservation.roomType?.price ?? 0)
                 }
               </div>
             </div>

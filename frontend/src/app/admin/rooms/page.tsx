@@ -3,10 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation } from '@apollo/client';
-import { GET_ALL_ROOMS } from '@/lib/graphql/queries';
-import { UPDATE_ROOM, CREATE_ROOM, DELETE_ROOM } from '@/lib/graphql/mutations';
-import { getAdminToken, removeAdminToken, formatCurrency, getRoomTypeLabel, getErrorMessage } from '@/lib/utils';
-import { Admin, Room, RoomType } from '@/lib/types';
+import { GET_ALL_ROOM_TYPES, GET_ALL_ACTUAL_ROOMS } from '@/lib/graphql/queries';
+import { CREATE_ROOM_TYPE, UPDATE_ROOM_TYPE, DELETE_ROOM_TYPE, CREATE_ACTUAL_ROOM, UPDATE_ACTUAL_ROOM, DELETE_ACTUAL_ROOM } from '@/lib/graphql/mutations';
+import { getAdminToken, removeAdminToken, formatCurrency, getErrorMessage } from '@/lib/utils';
+import { Admin, RoomType, ActualRoom } from '@/lib/types';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { 
@@ -17,32 +17,59 @@ import {
   ArrowLeftIcon,
   SaveIcon,
   XIcon,
+  HotelIcon,
+  BuildingIcon,
 } from 'lucide-react';
 import Link from 'next/link';
 
+type ManagementMode = 'room-types' | 'actual-rooms';
+
 export default function AdminRooms() {
   const [admin, setAdmin] = useState<Admin | null>(null);
-  const [editingRoom, setEditingRoom] = useState<Room | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
-  const [formData, setFormData] = useState({
-    roomNumber: '',
-    type: 'STANDARD' as RoomType,
+  const [mode, setMode] = useState<ManagementMode>('room-types');
+  
+  // Room Type Management
+  const [editingRoomType, setEditingRoomType] = useState<RoomType | null>(null);
+  const [isCreatingRoomType, setIsCreatingRoomType] = useState(false);
+  const [roomTypeFormData, setRoomTypeFormData] = useState({
+    name: '',
     description: '',
     price: 0,
     capacity: 2,
     amenities: [] as string[],
     images: [] as string[],
-    isAvailable: true,
+    isActive: true,
   });
+  
+  // Actual Room Management  
+  const [editingActualRoom, setEditingActualRoom] = useState<ActualRoom | null>(null);
+  const [isCreatingActualRoom, setIsCreatingActualRoom] = useState(false);
+  const [actualRoomFormData, setActualRoomFormData] = useState({
+    roomNumber: '',
+    roomTypeId: '',
+    isAvailable: true,
+    isUnderMaintenance: false,
+    maintenanceNotes: '',
+  });
+  
   const [amenityInput, setAmenityInput] = useState('');
   const [imageInput, setImageInput] = useState('');
   
   const router = useRouter();
 
-  const { data: roomsData, loading: roomsLoading, refetch } = useQuery(GET_ALL_ROOMS);
-  const [updateRoom, { loading: updateLoading }] = useMutation(UPDATE_ROOM);
-  const [createRoom, { loading: createLoading }] = useMutation(CREATE_ROOM);
-  const [deleteRoom, { loading: deleteLoading }] = useMutation(DELETE_ROOM);
+  // Queries
+  const { data: roomTypesData, loading: roomTypesLoading, refetch: refetchRoomTypes } = useQuery(GET_ALL_ROOM_TYPES);
+  const { data: actualRoomsData, loading: actualRoomsLoading, refetch: refetchActualRooms } = useQuery(GET_ALL_ACTUAL_ROOMS);
+  
+  // Room Type Mutations
+  const [createRoomType, { loading: createRoomTypeLoading }] = useMutation(CREATE_ROOM_TYPE);
+  const [updateRoomType, { loading: updateRoomTypeLoading }] = useMutation(UPDATE_ROOM_TYPE);
+  const [deleteRoomType, { loading: deleteRoomTypeLoading }] = useMutation(DELETE_ROOM_TYPE);
+  
+  // Actual Room Mutations
+  const [createActualRoom, { loading: createActualRoomLoading }] = useMutation(CREATE_ACTUAL_ROOM);
+  const [updateActualRoom, { loading: updateActualRoomLoading }] = useMutation(UPDATE_ACTUAL_ROOM);
+  const [deleteActualRoom, { loading: deleteActualRoomLoading }] = useMutation(DELETE_ACTUAL_ROOM);
 
   useEffect(() => {
     const token = getAdminToken();
@@ -67,56 +94,93 @@ export default function AdminRooms() {
     router.push('/admin/login');
   };
 
-  const rooms: Room[] = roomsData?.rooms || [];
+  const roomTypes: RoomType[] = roomTypesData?.roomTypes || [];
+  const actualRooms: ActualRoom[] = actualRoomsData?.actualRooms || [];
 
-  const startEdit = (room: Room) => {
-    setEditingRoom(room);
-    setFormData({
-      roomNumber: room.roomNumber,
-      type: room.type,
-      description: room.description,
-      price: room.price,
-      capacity: room.capacity,
-      amenities: [...room.amenities],
-      images: [...room.images],
-      isAvailable: room.isAvailable,
+  // Room Type Management Functions
+  const startEditRoomType = (roomType: RoomType) => {
+    setEditingRoomType(roomType);
+    setRoomTypeFormData({
+      name: roomType.name,
+      description: roomType.description,
+      price: roomType.price,
+      capacity: roomType.capacity,
+      amenities: [...roomType.amenities],
+      images: [...roomType.images],
+      isActive: roomType.isActive,
     });
-    setIsCreating(false);
+    setIsCreatingRoomType(false);
   };
 
-  const startCreate = () => {
-    setEditingRoom(null);
-    setFormData({
-      roomNumber: '',
-      type: 'STANDARD',
+  const startCreateRoomType = () => {
+    setEditingRoomType(null);
+    setRoomTypeFormData({
+      name: '',
       description: '',
       price: 0,
       capacity: 2,
       amenities: [],
       images: [],
-      isAvailable: true,
+      isActive: true,
     });
-    setIsCreating(true);
+    setIsCreatingRoomType(true);
   };
 
-  const cancelEdit = () => {
-    setEditingRoom(null);
-    setIsCreating(false);
-    setFormData({
-      roomNumber: '',
-      type: 'STANDARD',
+  const cancelRoomTypeEdit = () => {
+    setEditingRoomType(null);
+    setIsCreatingRoomType(false);
+    setRoomTypeFormData({
+      name: '',
       description: '',
       price: 0,
       capacity: 2,
       amenities: [],
       images: [],
-      isAvailable: true,
+      isActive: true,
     });
   };
 
+  // Actual Room Management Functions
+  const startEditActualRoom = (actualRoom: ActualRoom) => {
+    setEditingActualRoom(actualRoom);
+    setActualRoomFormData({
+      roomNumber: actualRoom.roomNumber,
+      roomTypeId: actualRoom.roomTypeId,
+      isAvailable: actualRoom.isAvailable,
+      isUnderMaintenance: actualRoom.isUnderMaintenance,
+      maintenanceNotes: actualRoom.maintenanceNotes || '',
+    });
+    setIsCreatingActualRoom(false);
+  };
+
+  const startCreateActualRoom = () => {
+    setEditingActualRoom(null);
+    setActualRoomFormData({
+      roomNumber: '',
+      roomTypeId: '',
+      isAvailable: true,
+      isUnderMaintenance: false,
+      maintenanceNotes: '',
+    });
+    setIsCreatingActualRoom(true);
+  };
+
+  const cancelActualRoomEdit = () => {
+    setEditingActualRoom(null);
+    setIsCreatingActualRoom(false);
+    setActualRoomFormData({
+      roomNumber: '',
+      roomTypeId: '',
+      isAvailable: true,
+      isUnderMaintenance: false,
+      maintenanceNotes: '',
+    });
+  };
+
+  // Helper functions for amenities and images
   const addAmenity = () => {
-    if (amenityInput.trim() && !formData.amenities.includes(amenityInput.trim())) {
-      setFormData(prev => ({
+    if (amenityInput.trim() && !roomTypeFormData.amenities.includes(amenityInput.trim())) {
+      setRoomTypeFormData(prev => ({
         ...prev,
         amenities: [...prev.amenities, amenityInput.trim()]
       }));
@@ -125,15 +189,15 @@ export default function AdminRooms() {
   };
 
   const removeAmenity = (amenity: string) => {
-    setFormData(prev => ({
+    setRoomTypeFormData(prev => ({
       ...prev,
       amenities: prev.amenities.filter(a => a !== amenity)
     }));
   };
 
   const addImage = () => {
-    if (imageInput.trim() && !formData.images.includes(imageInput.trim())) {
-      setFormData(prev => ({
+    if (imageInput.trim() && !roomTypeFormData.images.includes(imageInput.trim())) {
+      setRoomTypeFormData(prev => ({
         ...prev,
         images: [...prev.images, imageInput.trim()]
       }));
@@ -142,46 +206,90 @@ export default function AdminRooms() {
   };
 
   const removeImage = (image: string) => {
-    setFormData(prev => ({
+    setRoomTypeFormData(prev => ({
       ...prev,
       images: prev.images.filter(img => img !== image)
     }));
   };
 
-  const handleSave = async () => {
+  // Save handlers
+  const handleSaveRoomType = async () => {
     try {
-      if (isCreating) {
-        await createRoom({
+      if (isCreatingRoomType) {
+        await createRoomType({
           variables: {
-            input: formData
+            input: roomTypeFormData
           }
         });
-      } else if (editingRoom) {
-        await updateRoom({
+      } else if (editingRoomType) {
+        await updateRoomType({
           variables: {
-            id: editingRoom.id,
-            input: formData
+            id: editingRoomType.id,
+            input: roomTypeFormData
           }
         });
       }
       
-      await refetch();
-      cancelEdit();
+      await refetchRoomTypes();
+      cancelRoomTypeEdit();
     } catch (error) {
-      console.error('Failed to save room:', error);
+      console.error('Failed to save room type:', error);
       alert(getErrorMessage(error));
     }
   };
 
-  const handleDelete = async (roomId: string) => {
+  const handleSaveActualRoom = async () => {
+    try {
+      if (isCreatingActualRoom) {
+        await createActualRoom({
+          variables: {
+            input: actualRoomFormData
+          }
+        });
+      } else if (editingActualRoom) {
+        await updateActualRoom({
+          variables: {
+            id: editingActualRoom.id,
+            input: actualRoomFormData
+          }
+        });
+      }
+      
+      await refetchActualRooms();
+      await refetchRoomTypes(); // Refresh room types to get updated room counts
+      cancelActualRoomEdit();
+    } catch (error) {
+      console.error('Failed to save actual room:', error);
+      alert(getErrorMessage(error));
+    }
+  };
+
+  // Delete handlers
+  const handleDeleteRoomType = async (roomTypeId: string) => {
+    if (confirm('Ste si istý, že chcete vymazať tento typ izby? Všetky izby tohto typu budú tiež vymazané.')) {
+      try {
+        await deleteRoomType({
+          variables: { id: roomTypeId }
+        });
+        await refetchRoomTypes();
+        await refetchActualRooms();
+      } catch (error) {
+        console.error('Failed to delete room type:', error);
+        alert(getErrorMessage(error));
+      }
+    }
+  };
+
+  const handleDeleteActualRoom = async (actualRoomId: string) => {
     if (confirm('Ste si istý, že chcete vymazať túto izbu?')) {
       try {
-        await deleteRoom({
-          variables: { id: roomId }
+        await deleteActualRoom({
+          variables: { id: actualRoomId }
         });
-        await refetch();
+        await refetchActualRooms();
+        await refetchRoomTypes();
       } catch (error) {
-        console.error('Failed to delete room:', error);
+        console.error('Failed to delete actual room:', error);
         alert(getErrorMessage(error));
       }
     }
@@ -228,256 +336,477 @@ export default function AdminRooms() {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold text-secondary-900">Správa izieb</h1>
-            <p className="text-secondary-600 mt-1">Spravujte hotelové izby, ceny a dostupnosť</p>
+            <p className="text-secondary-600 mt-1">Spravujte typy izieb a skutočné izby</p>
           </div>
-          <Button onClick={startCreate}>
-            <PlusIcon className="h-4 w-4 mr-2" />
-            Pridať novú izbu
-          </Button>
         </div>
 
-        {/* Room Form (Edit/Create) */}
-        {(editingRoom || isCreating) && (
-          <div className="bg-white rounded-lg shadow mb-8 p-6">
+        {/* Mode Toggle */}
+        <div className="flex space-x-1 bg-secondary-100 p-1 rounded-lg mb-8 w-fit">
+          <button
+            onClick={() => setMode('room-types')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              mode === 'room-types' 
+                ? 'bg-white text-info-600 shadow-sm' 
+                : 'text-secondary-600 hover:text-secondary-900'
+            }`}
+          >
+            <BuildingIcon className="h-4 w-4 inline mr-2" />
+            Typy izieb
+          </button>
+          <button
+            onClick={() => setMode('actual-rooms')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              mode === 'actual-rooms' 
+                ? 'bg-white text-info-600 shadow-sm' 
+                : 'text-secondary-600 hover:text-secondary-900'
+            }`}
+          >
+            <HotelIcon className="h-4 w-4 inline mr-2" />
+            Skutočné izby
+          </button>
+        </div>
+
+        {/* Room Types Management */}
+        {mode === 'room-types' && (
+          <>
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold">
-                {isCreating ? 'Vytvoriť novú izbu' : `Upraviť izbu ${editingRoom?.roomNumber}`}
-              </h2>
-              <Button variant="outline" onClick={cancelEdit}>
-                <XIcon className="h-4 w-4 mr-2" />
-                Zrušiť
+              <h2 className="text-xl font-semibold text-secondary-900">Typy izieb</h2>
+              <Button onClick={startCreateRoomType}>
+                <PlusIcon className="h-4 w-4 mr-2" />
+                Pridať typ izby
               </Button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Input
-                label="Číslo izby"
-                value={formData.roomNumber}
-                onChange={(e) => setFormData(prev => ({ ...prev, roomNumber: e.target.value }))}
-                placeholder="101"
-              />
-              
-              <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-1">
-                  Typ izby
-                </label>
-                <select
-                  value={formData.type}
-                  onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value as RoomType }))}
-                  className="w-full h-10 px-3 py-2 border border-secondary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="STANDARD">Štandardná izba</option>
-                  <option value="DELUXE">Deluxe izba</option>
-                  <option value="SUITE">Apartmán</option>
-                  <option value="PRESIDENTIAL">Prezidentský apartmán</option>
-                </select>
-              </div>
+            {/* Room Type Form */}
+            {(editingRoomType || isCreatingRoomType) && (
+              <div className="bg-white rounded-lg shadow mb-8 p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-semibold">
+                    {isCreatingRoomType ? 'Vytvoriť nový typ izby' : `Upraviť ${editingRoomType?.name}`}
+                  </h3>
+                  <Button variant="outline" onClick={cancelRoomTypeEdit}>
+                    <XIcon className="h-4 w-4 mr-2" />
+                    Zrušiť
+                  </Button>
+                </div>
 
-              <Input
-                label="Cena za noc"
-                type="number"
-                value={formData.price}
-                onChange={(e) => setFormData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
-                placeholder="89.00"
-              />
-
-              <Input
-                label="Kapacita (hostia)"
-                type="number"
-                value={formData.capacity}
-                onChange={(e) => setFormData(prev => ({ ...prev, capacity: parseInt(e.target.value) || 2 }))}
-                min="1"
-                max="10"
-              />
-
-              <div className="md:col-span-2">
-                <Input
-                  label="Popis"
-                  value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Pohodlná izba s moderným vybavením..."
-                />
-              </div>
-
-              {/* Amenities */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-secondary-700 mb-1">
-                  Vybavenie
-                </label>
-                <div className="flex gap-2 mb-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <Input
-                    value={amenityInput}
-                    onChange={(e) => setAmenityInput(e.target.value)}
-                    placeholder="Pridať vybavenie..."
-                    onKeyPress={(e) => e.key === 'Enter' && addAmenity()}
+                    label="Názov"
+                    value={roomTypeFormData.name}
+                    onChange={(e) => setRoomTypeFormData(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Štandardná izba"
                   />
-                  <Button type="button" onClick={addAmenity}>Pridať</Button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {formData.amenities.map((amenity) => (
-                    <span
-                      key={amenity}
-                      className="px-3 py-1 bg-info-100 text-info-800 rounded-full text-sm flex items-center"
-                    >
-                      {amenity}
-                      <button
-                        onClick={() => removeAmenity(amenity)}
-                        className="ml-2 text-info-600 hover:text-info-800"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Images */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-secondary-700 mb-1">
-                  Obrázky (URL)
-                </label>
-                <div className="flex gap-2 mb-2">
+                  
                   <Input
-                    value={imageInput}
-                    onChange={(e) => setImageInput(e.target.value)}
-                    placeholder="https://example.com/image.jpg"
-                    onKeyPress={(e) => e.key === 'Enter' && addImage()}
+                    label="Cena za noc"
+                    type="number"
+                    value={roomTypeFormData.price}
+                    onChange={(e) => setRoomTypeFormData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
+                    placeholder="89.00"
                   />
-                  <Button type="button" onClick={addImage}>Pridať</Button>
-                </div>
-                <div className="space-y-2">
-                  {formData.images.map((image, index) => (
-                    <div key={index} className="flex items-center gap-2 p-2 bg-secondary-50 rounded">
-                      <span className="flex-1 text-sm text-secondary-600 truncate">{image}</span>
-                      <button
-                        onClick={() => removeImage(image)}
-                        className="text-error-600 hover:text-error-800"
-                      >
-                        <TrashIcon className="h-4 w-4" />
-                      </button>
+
+                  <Input
+                    label="Kapacita (hostia)"
+                    type="number"
+                    value={roomTypeFormData.capacity}
+                    onChange={(e) => setRoomTypeFormData(prev => ({ ...prev, capacity: parseInt(e.target.value) || 2 }))}
+                    min="1"
+                    max="10"
+                  />
+
+                  <div className="md:col-span-2">
+                    <Input
+                      label="Popis"
+                      value={roomTypeFormData.description}
+                      onChange={(e) => setRoomTypeFormData(prev => ({ ...prev, description: e.target.value }))}
+                      placeholder="Pohodlná izba s moderným vybavením..."
+                    />
+                  </div>
+
+                  {/* Amenities */}
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-secondary-700 mb-1">
+                      Vybavenie
+                    </label>
+                    <div className="flex gap-2 mb-2">
+                      <Input
+                        value={amenityInput}
+                        onChange={(e) => setAmenityInput(e.target.value)}
+                        placeholder="Pridať vybavenie..."
+                        onKeyPress={(e) => e.key === 'Enter' && addAmenity()}
+                      />
+                      <Button type="button" onClick={addAmenity}>Pridať</Button>
                     </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Available Toggle */}
-              <div className="md:col-span-2">
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={formData.isAvailable}
-                    onChange={(e) => setFormData(prev => ({ ...prev, isAvailable: e.target.checked }))}
-                    className="mr-2"
-                  />
-                  <span className="text-sm font-medium text-secondary-700">Izba je dostupná na rezerváciu</span>
-                </label>
-              </div>
-            </div>
-
-            <div className="flex justify-end mt-6">
-              <Button
-                onClick={handleSave}
-                isLoading={createLoading || updateLoading}
-              >
-                <SaveIcon className="h-4 w-4 mr-2" />
-                {isCreating ? 'Vytvoriť izbu' : 'Uložiť zmeny'}
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Rooms List */}
-        <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b border-secondary-200">
-            <h3 className="text-lg font-medium text-secondary-900">Všetky izby</h3>
-          </div>
-          
-          <div className="overflow-x-auto">
-            {roomsLoading ? (
-              <div className="p-6 text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-info-600 mx-auto"></div>
-              </div>
-            ) : (
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-secondary-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
-                      Izba
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
-                      Typ
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
-                      Cena
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
-                      Kapacita
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
-                      Stav
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
-                      Akcie
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {rooms.map((room) => (
-                    <tr key={room.id}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-secondary-900">
-                            Izba {room.roomNumber}
-                          </div>
-                          <div className="text-sm text-secondary-500 truncate max-w-xs">
-                            {room.description}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-900">
-                        {getRoomTypeLabel(room.type)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-900">
-                        {formatCurrency(room.price)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-900">
-                        {room.capacity} hostí
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 text-xs rounded-full ${
-                          room.isAvailable 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-error-100 text-error-800'
-                        }`}>
-                          {room.isAvailable ? 'Dostupná' : 'Nedostupná'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => startEdit(room)}
+                    <div className="flex flex-wrap gap-2">
+                      {roomTypeFormData.amenities.map((amenity) => (
+                        <span
+                          key={amenity}
+                          className="px-3 py-1 bg-info-100 text-info-800 rounded-full text-sm flex items-center"
+                        >
+                          {amenity}
+                          <button
+                            onClick={() => removeAmenity(amenity)}
+                            className="ml-2 text-info-600 hover:text-info-800"
                           >
-                            <EditIcon className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="danger"
-                            size="sm"
-                            onClick={() => handleDelete(room.id)}
-                            isLoading={deleteLoading}
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Images */}
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-secondary-700 mb-1">
+                      Obrázky (URL)
+                    </label>
+                    <div className="flex gap-2 mb-2">
+                      <Input
+                        value={imageInput}
+                        onChange={(e) => setImageInput(e.target.value)}
+                        placeholder="https://example.com/image.jpg"
+                        onKeyPress={(e) => e.key === 'Enter' && addImage()}
+                      />
+                      <Button type="button" onClick={addImage}>Pridať</Button>
+                    </div>
+                    <div className="space-y-2">
+                      {roomTypeFormData.images.map((image, index) => (
+                        <div key={index} className="flex items-center gap-2 p-2 bg-secondary-50 rounded">
+                          <span className="flex-1 text-sm text-secondary-600 truncate">{image}</span>
+                          <button
+                            onClick={() => removeImage(image)}
+                            className="text-error-600 hover:text-error-800"
                           >
                             <TrashIcon className="h-4 w-4" />
-                          </Button>
+                          </button>
                         </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Active Toggle */}
+                  <div className="md:col-span-2">
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={roomTypeFormData.isActive}
+                        onChange={(e) => setRoomTypeFormData(prev => ({ ...prev, isActive: e.target.checked }))}
+                        className="mr-2"
+                      />
+                      <span className="text-sm font-medium text-secondary-700">Typ izby je aktívny</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="flex justify-end mt-6">
+                  <Button
+                    onClick={handleSaveRoomType}
+                    isLoading={createRoomTypeLoading || updateRoomTypeLoading}
+                  >
+                    <SaveIcon className="h-4 w-4 mr-2" />
+                    {isCreatingRoomType ? 'Vytvoriť typ izby' : 'Uložiť zmeny'}
+                  </Button>
+                </div>
+              </div>
             )}
-          </div>
-        </div>
+
+            {/* Room Types List */}
+            <div className="bg-white rounded-lg shadow">
+              <div className="px-6 py-4 border-b border-secondary-200">
+                <h3 className="text-lg font-medium text-secondary-900">Všetky typy izieb</h3>
+              </div>
+              
+              <div className="overflow-x-auto">
+                {roomTypesLoading ? (
+                  <div className="p-6 text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-info-600 mx-auto"></div>
+                  </div>
+                ) : (
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-secondary-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
+                          Typ
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
+                          Cena
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
+                          Kapacita
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
+                          Izby
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
+                          Stav
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
+                          Akcie
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {roomTypes.map((roomType) => {
+                        const roomCount = roomType.rooms?.length || 0;
+                        const availableCount = roomType.rooms?.filter(r => r.isAvailable).length || 0;
+                        return (
+                          <tr key={roomType.id}>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div>
+                                <div className="text-sm font-medium text-secondary-900">
+                                  {roomType.name}
+                                </div>
+                                <div className="text-sm text-secondary-500 truncate max-w-xs">
+                                  {roomType.description}
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-900">
+                              {formatCurrency(roomType.price)}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-900">
+                              {roomType.capacity} hostí
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-900">
+                              {availableCount}/{roomCount}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className={`px-2 py-1 text-xs rounded-full ${
+                                roomType.isActive 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-error-100 text-error-800'
+                              }`}>
+                                {roomType.isActive ? 'Aktívny' : 'Neaktívny'}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                              <div className="flex space-x-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => startEditRoomType(roomType)}
+                                >
+                                  <EditIcon className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="danger"
+                                  size="sm"
+                                  onClick={() => handleDeleteRoomType(roomType.id)}
+                                  isLoading={deleteRoomTypeLoading}
+                                >
+                                  <TrashIcon className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Actual Rooms Management */}
+        {mode === 'actual-rooms' && (
+          <>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-semibold text-secondary-900">Skutočné izby</h2>
+              <Button onClick={startCreateActualRoom}>
+                <PlusIcon className="h-4 w-4 mr-2" />
+                Pridať izbu
+              </Button>
+            </div>
+
+            {/* Actual Room Form */}
+            {(editingActualRoom || isCreatingActualRoom) && (
+              <div className="bg-white rounded-lg shadow mb-8 p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-semibold">
+                    {isCreatingActualRoom ? 'Vytvoriť novú izbu' : `Upraviť izbu ${editingActualRoom?.roomNumber}`}
+                  </h3>
+                  <Button variant="outline" onClick={cancelActualRoomEdit}>
+                    <XIcon className="h-4 w-4 mr-2" />
+                    Zrušiť
+                  </Button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Input
+                    label="Číslo izby"
+                    value={actualRoomFormData.roomNumber}
+                    onChange={(e) => setActualRoomFormData(prev => ({ ...prev, roomNumber: e.target.value }))}
+                    placeholder="101"
+                  />
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-secondary-700 mb-1">
+                      Typ izby *
+                    </label>
+                    <select
+                      value={actualRoomFormData.roomTypeId}
+                      onChange={(e) => setActualRoomFormData(prev => ({ ...prev, roomTypeId: e.target.value }))}
+                      className="w-full h-10 px-3 py-2 border border-secondary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Vyberte typ izby...</option>
+                      {roomTypes.filter(rt => rt.isActive).map((roomType) => (
+                        <option key={roomType.id} value={roomType.id}>
+                          {roomType.name} - {formatCurrency(roomType.price)}/noc
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={actualRoomFormData.isAvailable}
+                        onChange={(e) => setActualRoomFormData(prev => ({ ...prev, isAvailable: e.target.checked }))}
+                        className="mr-2"
+                      />
+                      <span className="text-sm font-medium text-secondary-700">Izba je dostupná</span>
+                    </label>
+                  </div>
+
+                  <div>
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={actualRoomFormData.isUnderMaintenance}
+                        onChange={(e) => setActualRoomFormData(prev => ({ ...prev, isUnderMaintenance: e.target.checked }))}
+                        className="mr-2"
+                      />
+                      <span className="text-sm font-medium text-secondary-700">V údržbe</span>
+                    </label>
+                  </div>
+
+                  {actualRoomFormData.isUnderMaintenance && (
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-secondary-700 mb-1">
+                        Poznámky k údržbe
+                      </label>
+                      <textarea
+                        value={actualRoomFormData.maintenanceNotes}
+                        onChange={(e) => setActualRoomFormData(prev => ({ ...prev, maintenanceNotes: e.target.value }))}
+                        rows={3}
+                        className="w-full px-3 py-2 border border-secondary-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-info-500"
+                        placeholder="Popis problému alebo plánovanej údržby..."
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-end mt-6">
+                  <Button
+                    onClick={handleSaveActualRoom}
+                    isLoading={createActualRoomLoading || updateActualRoomLoading}
+                  >
+                    <SaveIcon className="h-4 w-4 mr-2" />
+                    {isCreatingActualRoom ? 'Vytvoriť izbu' : 'Uložiť zmeny'}
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Actual Rooms List */}
+            <div className="bg-white rounded-lg shadow">
+              <div className="px-6 py-4 border-b border-secondary-200">
+                <h3 className="text-lg font-medium text-secondary-900">Všetky izby</h3>
+              </div>
+              
+              <div className="overflow-x-auto">
+                {actualRoomsLoading ? (
+                  <div className="p-6 text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-info-600 mx-auto"></div>
+                  </div>
+                ) : (
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-secondary-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
+                          Číslo izby
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
+                          Typ
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
+                          Cena
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
+                          Stav
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
+                          Údržba
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
+                          Akcie
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {actualRooms.map((room) => (
+                        <tr key={room.id}>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-secondary-900">
+                              {room.roomNumber}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-900">
+                            {room.roomType?.name || 'N/A'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-900">
+                            {room.roomType ? formatCurrency(room.roomType.price) : 'N/A'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`px-2 py-1 text-xs rounded-full ${
+                              room.isAvailable 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-error-100 text-error-800'
+                            }`}>
+                              {room.isAvailable ? 'Dostupná' : 'Obsadená'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`px-2 py-1 text-xs rounded-full ${
+                              room.isUnderMaintenance 
+                                ? 'bg-yellow-100 text-yellow-800' 
+                                : 'bg-gray-100 text-gray-800'
+                            }`}>
+                              {room.isUnderMaintenance ? 'V údržbe' : 'OK'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <div className="flex space-x-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => startEditActualRoom(room)}
+                              >
+                                <EditIcon className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="danger"
+                                size="sm"
+                                onClick={() => handleDeleteActualRoom(room.id)}
+                                isLoading={deleteActualRoomLoading}
+                              >
+                                <TrashIcon className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

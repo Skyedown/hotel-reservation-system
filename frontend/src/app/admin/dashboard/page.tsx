@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@apollo/client';
-import { GET_ALL_RESERVATIONS, GET_ALL_ROOMS } from '@/lib/graphql/queries';
+import { GET_ALL_RESERVATIONS, GET_ALL_ROOM_TYPES } from '@/lib/graphql/queries';
 import { getAdminToken, removeAdminToken, formatCurrency, formatDateTime, getStatusColor } from '@/lib/utils';
-import { Admin, Reservation, Room } from '@/lib/types';
+import { Admin, Reservation, RoomType } from '@/lib/types';
 import { Button } from '@/components/ui/Button';
 import { 
   CalendarIcon, 
@@ -23,7 +23,7 @@ export default function AdminDashboard() {
   const router = useRouter();
 
   const { data: reservationsData, loading: reservationsLoading } = useQuery(GET_ALL_RESERVATIONS);
-  const { data: roomsData, loading: roomsLoading } = useQuery(GET_ALL_ROOMS);
+  const { data: roomTypesData, loading: roomTypesLoading } = useQuery(GET_ALL_ROOM_TYPES);
 
   useEffect(() => {
     const token = getAdminToken();
@@ -49,7 +49,8 @@ export default function AdminDashboard() {
   };
 
   const reservations: Reservation[] = reservationsData?.allReservations || [];
-  const rooms: Room[] = roomsData?.rooms || [];
+  const roomTypes: RoomType[] = roomTypesData?.roomTypes || [];
+  const totalActualRooms = roomTypes.reduce((sum, rt) => sum + (rt.rooms?.length || 0), 0);
 
   // Calculate stats
   const totalReservations = reservations.length;
@@ -58,7 +59,7 @@ export default function AdminDashboard() {
   const totalRevenue = reservations
     .filter(r => r.status === 'CONFIRMED' || r.status === 'CHECKED_OUT')
     .reduce((sum, r) => sum + r.totalPrice, 0);
-  const availableRooms = rooms.filter(r => r.isAvailable).length;
+  const availableRooms = roomTypes.reduce((sum, rt) => sum + (rt.rooms?.filter(r => r.isAvailable).length || 0), 0);
 
   if (!admin) {
     return (
@@ -220,7 +221,7 @@ export default function AdminDashboard() {
                           {reservation.guestFirstName} {reservation.guestLastName}
                         </p>
                         <p className="text-xs text-secondary-500">
-                          Room {reservation.room?.roomNumber} • {formatDateTime(reservation.createdAt || '')}
+                          {reservation.actualRoom?.roomNumber ? `Room ${reservation.actualRoom.roomNumber}` : reservation.roomType?.name || 'Room TBD'} • {formatDateTime(reservation.createdAt || '')}
                         </p>
                       </div>
                       <div className="flex items-center space-x-2">
@@ -254,7 +255,7 @@ export default function AdminDashboard() {
               </div>
             </div>
             <div className="p-6">
-              {roomsLoading ? (
+              {roomTypesLoading ? (
                 <div className="space-y-3">
                   {[...Array(3)].map((_, i) => (
                     <div key={i} className="animate-pulse">
@@ -268,7 +269,7 @@ export default function AdminDashboard() {
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <span className="text-secondary-500">Celkom izieb:</span>
-                      <span className="ml-2 font-medium">{rooms.length}</span>
+                      <span className="ml-2 font-medium">{totalActualRooms}</span>
                     </div>
                     <div>
                       <span className="text-secondary-500">Dostupné:</span>
@@ -276,7 +277,7 @@ export default function AdminDashboard() {
                     </div>
                     <div>
                       <span className="text-secondary-500">Obsadené:</span>
-                      <span className="ml-2 font-medium text-info-600">{rooms.length - availableRooms}</span>
+                      <span className="ml-2 font-medium text-info-600">{totalActualRooms - availableRooms}</span>
                     </div>
                     <div>
                       <span className="text-secondary-500">Potvrdené:</span>

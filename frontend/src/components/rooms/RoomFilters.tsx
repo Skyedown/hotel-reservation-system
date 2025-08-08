@@ -1,15 +1,14 @@
 'use client';
 
-import { RoomType } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
 import { FilterIcon } from 'lucide-react';
 
 interface RoomFiltersProps {
-  selectedType: RoomType | 'ALL';
+  selectedType: string | 'ALL';
   maxPrice: number;
   minCapacity: number;
   resultsCount: number;
-  onTypeChange: (type: RoomType | 'ALL') => void;
+  onTypeChange: (type: string | 'ALL') => void;
   onPriceChange: (price: number) => void;
   onCapacityChange: (capacity: number) => void;
 }
@@ -23,7 +22,7 @@ export function RoomFilters({
   onPriceChange,
   onCapacityChange,
 }: RoomFiltersProps) {
-  const roomTypes: { value: RoomType | 'ALL'; label: string }[] = [
+  const roomTypes: { value: string | 'ALL'; label: string }[] = [
     { value: 'ALL', label: 'Všetky izby' },
     { value: 'STANDARD', label: 'Štandardná' },
     { value: 'DELUXE', label: 'Deluxe' },
@@ -49,7 +48,7 @@ export function RoomFilters({
             </label>
             <select
               value={selectedType}
-              onChange={(e) => onTypeChange(e.target.value as RoomType | 'ALL')}
+              onChange={(e) => onTypeChange(e.target.value as string | 'ALL')}
               className="w-full px-3 py-2 border border-secondary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-secondary-900"
             >
               {roomTypes.map((type) => (
