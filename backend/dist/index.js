@@ -23,6 +23,17 @@ async function startServer() {
     await (0, prisma_1.connectDatabase)();
     // Start cron services
     cronService_1.cronService.start();
+    // Global CORS configuration
+    const allowedOrigins = [
+        process.env.FRONTEND_URL || 'http://localhost:3000',
+        'https://peterlehocky.site',
+        'https://www.peterlehocky.site'
+    ].filter(Boolean); // Remove any undefined values
+    app.use((0, cors_1.default)({
+        origin: allowedOrigins,
+        credentials: true
+    }));
+    console.log('🌐 CORS enabled for origins:', allowedOrigins);
     const schema = (0, schema_1.makeExecutableSchema)({
         typeDefs: typeDefs_1.typeDefs,
         resolvers: resolvers_1.resolvers,
@@ -31,7 +42,7 @@ async function startServer() {
         schema,
     });
     await apolloServer.start();
-    app.use('/graphql', (0, cors_1.default)(), express_1.default.json(), (0, express4_1.expressMiddleware)(apolloServer, {
+    app.use('/graphql', express_1.default.json(), (0, express4_1.expressMiddleware)(apolloServer, {
         context: context_1.createContext,
     }));
     app.get('/health', (_, res) => {

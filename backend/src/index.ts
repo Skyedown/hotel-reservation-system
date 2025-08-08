@@ -23,6 +23,18 @@ async function startServer() {
   // Start cron services
   cronService.start();
 
+  // Global CORS configuration
+  const allowedOrigins = [
+    process.env.FRONTEND_URL || 'http://localhost:3000',
+    'https://peterlehocky.site',
+    'https://www.peterlehocky.site'
+  ].filter(Boolean); // Remove any undefined values
+
+  app.use(cors({
+    origin: allowedOrigins,
+    credentials: true
+  }));
+
   const schema = makeExecutableSchema({
     typeDefs,
     resolvers,
@@ -36,7 +48,6 @@ async function startServer() {
 
   app.use(
     '/graphql',
-    cors(),
     express.json(),
     expressMiddleware(apolloServer, {
       context: createContext as any,
