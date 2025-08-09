@@ -113,9 +113,9 @@ export default function AdminDashboard() {
           </Link>
 
           <Link href="/admin/rooms">
-            <div className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer border-l-4 border-green-500">
+            <div className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer border-l-4 border-success-500">
               <div className="flex items-center">
-                <HotelIcon className="h-8 w-8 text-green-500 mr-4" />
+                <HotelIcon className="h-8 w-8 text-success-500 mr-4" />
                 <div>
                   <h3 className="text-lg font-semibold text-secondary-900">Spravovať izby</h3>
                   <p className="text-sm text-secondary-600">Pridať, upraviť a nakonfigurovať nastavenia izieb</p>
@@ -125,9 +125,9 @@ export default function AdminDashboard() {
           </Link>
 
           <Link href="/admin/reservations/new">
-            <div className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer border-l-4 border-purple-500">
+            <div className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer border-l-4 border-primary-500">
               <div className="flex items-center">
-                <PlusIcon className="h-8 w-8 text-purple-500 mr-4" />
+                <PlusIcon className="h-8 w-8 text-primary-500 mr-4" />
                 <div>
                   <h3 className="text-lg font-semibold text-secondary-900">Nová rezervácia</h3>
                   <p className="text-sm text-secondary-600">Vytvoriť rezerváciu pre hostí</p>
@@ -154,7 +154,7 @@ export default function AdminDashboard() {
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <UsersIcon className="h-6 w-6 text-yellow-600" />
+                <UsersIcon className="h-6 w-6 text-warning-600" />
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-secondary-500">Čakajúce</p>
@@ -166,7 +166,7 @@ export default function AdminDashboard() {
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <DollarSignIcon className="h-6 w-6 text-green-600" />
+                <DollarSignIcon className="h-6 w-6 text-success-600" />
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-secondary-500">Celkové tržby</p>
@@ -178,7 +178,7 @@ export default function AdminDashboard() {
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <HotelIcon className="h-6 w-6 text-purple-600" />
+                <HotelIcon className="h-6 w-6 text-primary-600" />
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-secondary-500">Dostupné izby</p>
@@ -273,7 +273,7 @@ export default function AdminDashboard() {
                     </div>
                     <div>
                       <span className="text-secondary-500">Dostupné:</span>
-                      <span className="ml-2 font-medium text-green-600">{availableRooms}</span>
+                      <span className="ml-2 font-medium text-success-600">{availableRooms}</span>
                     </div>
                     <div>
                       <span className="text-secondary-500">Obsadené:</span>
@@ -281,7 +281,7 @@ export default function AdminDashboard() {
                     </div>
                     <div>
                       <span className="text-secondary-500">Potvrdené:</span>
-                      <span className="ml-2 font-medium text-yellow-600">{confirmedReservations}</span>
+                      <span className="ml-2 font-medium text-warning-600">{confirmedReservations}</span>
                     </div>
                   </div>
                   

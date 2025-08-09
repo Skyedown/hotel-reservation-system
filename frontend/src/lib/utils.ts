@@ -102,24 +102,24 @@ export function getRoomTypeLabel(type: string): string {
 
 export function getStatusColor(status: string): string {
   const colors: Record<string, string> = {
-    PENDING: 'text-yellow-600 bg-yellow-50 border-yellow-200',
-    CONFIRMED: 'text-green-600 bg-green-50 border-green-200',
-    CHECKED_IN: 'text-blue-600 bg-blue-50 border-blue-200',
-    CHECKED_OUT: 'text-gray-600 bg-gray-50 border-gray-200',
-    CANCELLED: 'text-red-600 bg-red-50 border-red-200',
+    PENDING: 'text-warning-600 bg-warning-50 border-warning-200',
+    CONFIRMED: 'text-success-600 bg-success-50 border-success-200',
+    CHECKED_IN: 'text-info-600 bg-info-50 border-info-200',
+    CHECKED_OUT: 'text-secondary-600 bg-secondary-50 border-secondary-200',
+    CANCELLED: 'text-error-600 bg-error-50 border-error-200',
   };
-  return colors[status] || 'text-gray-600 bg-gray-50 border-gray-200';
+  return colors[status] || 'text-secondary-600 bg-secondary-50 border-secondary-200';
 }
 
 export function getPaymentStatusColor(status: string): string {
   const colors: Record<string, string> = {
-    PENDING: 'text-yellow-600 bg-yellow-50',
-    PROCESSING: 'text-blue-600 bg-blue-50',
-    COMPLETED: 'text-green-600 bg-green-50',
-    FAILED: 'text-red-600 bg-red-50',
-    REFUNDED: 'text-purple-600 bg-purple-50',
+    PENDING: 'text-warning-600 bg-warning-50',
+    PROCESSING: 'text-info-600 bg-info-50',
+    COMPLETED: 'text-success-600 bg-success-50',
+    FAILED: 'text-error-600 bg-error-50',
+    REFUNDED: 'text-primary-600 bg-primary-50',
   };
-  return colors[status] || 'text-gray-600 bg-gray-50';
+  return colors[status] || 'text-secondary-600 bg-secondary-50';
 }
 
 // Form validation

@@ -574,7 +574,7 @@ export default function AdminRooms() {
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span className={`px-2 py-1 text-xs rounded-full ${
                                 roomType.isActive 
-                                  ? 'bg-green-100 text-green-800' 
+                                  ? 'bg-success-100 text-success-800' 
                                   : 'bg-error-100 text-error-800'
                               }`}>
                                 {roomType.isActive ? 'Aktívny' : 'Neaktívny'}
@@ -764,7 +764,7 @@ export default function AdminRooms() {
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className={`px-2 py-1 text-xs rounded-full ${
                               room.isAvailable 
-                                ? 'bg-green-100 text-green-800' 
+                                ? 'bg-success-100 text-success-800' 
                                 : 'bg-error-100 text-error-800'
                             }`}>
                               {room.isAvailable ? 'Dostupná' : 'Obsadená'}
@@ -773,8 +773,8 @@ export default function AdminRooms() {
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className={`px-2 py-1 text-xs rounded-full ${
                               room.isUnderMaintenance 
-                                ? 'bg-yellow-100 text-yellow-800' 
-                                : 'bg-gray-100 text-gray-800'
+                                ? 'bg-warning-100 text-warning-800' 
+                                : 'bg-secondary-100 text-secondary-800'
                             }`}>
                               {room.isUnderMaintenance ? 'V údržbe' : 'OK'}
                             </span>

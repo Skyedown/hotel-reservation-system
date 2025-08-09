@@ -80,7 +80,7 @@ export function ReservationDetailsModal({ isOpen, onClose, reservation, bookingG
         {/* Room & Booking Details */}
         <div className="bg-secondary-50 p-4 rounded-lg">
           <div className="flex items-center mb-3">
-            <HotelIcon className="h-5 w-5 text-green-500 mr-2" />
+            <HotelIcon className="h-5 w-5 text-success-500 mr-2" />
             <h4 className="text-lg font-semibold text-secondary-900">
               {isMultiRoom ? 'Detaily izieb a rezervácie' : 'Detaily izby a rezervácie'}
             </h4>
@@ -171,7 +171,7 @@ export function ReservationDetailsModal({ isOpen, onClose, reservation, bookingG
         {/* Status & Payment */}
         <div className="bg-secondary-50 p-4 rounded-lg">
           <div className="flex items-center mb-3">
-            <DollarSignIcon className="h-5 w-5 text-purple-500 mr-2" />
+            <DollarSignIcon className="h-5 w-5 text-primary-500 mr-2" />
             <h4 className="text-lg font-semibold text-secondary-900">Stav a platba</h4>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -237,7 +237,7 @@ export function ReservationDetailsModal({ isOpen, onClose, reservation, bookingG
         {reservation.specialRequests && (
           <div className="bg-secondary-50 p-4 rounded-lg">
             <div className="flex items-center mb-3">
-              <MessageSquareIcon className="h-5 w-5 text-indigo-500 mr-2" />
+              <MessageSquareIcon className="h-5 w-5 text-info-500 mr-2" />
               <h4 className="text-lg font-semibold text-secondary-900">Špeciálne požiadavky</h4>
             </div>
             <p className="text-secondary-700">{reservation.specialRequests}</p>
@@ -248,7 +248,7 @@ export function ReservationDetailsModal({ isOpen, onClose, reservation, bookingG
         {reservation.payments && reservation.payments.length > 0 && (
           <div className="bg-secondary-50 p-4 rounded-lg">
             <div className="flex items-center mb-3">
-              <DollarSignIcon className="h-5 w-5 text-green-500 mr-2" />
+              <DollarSignIcon className="h-5 w-5 text-success-500 mr-2" />
               <h4 className="text-lg font-semibold text-secondary-900">História platieb</h4>
             </div>
             <div className="space-y-2">

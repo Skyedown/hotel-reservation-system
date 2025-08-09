@@ -378,10 +378,10 @@ Nenašli sa žiadne rezervácie spĺňajúce kritériá.
                               disabled={updateLoading}
                               className={`text-xs font-semibold px-2 py-1 rounded border focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer transition-colors ${
                                 primaryReservation.status === 'CONFIRMED'
-                                  ? 'bg-green-100 text-green-800 border-green-300 hover:bg-green-200'
+                                  ? 'bg-success-100 text-success-800 border-success-300 hover:bg-success-200'
                                   : primaryReservation.status === 'CHECKED_IN'
-                                  ? 'bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200'
-                                  : 'bg-purple-100 text-purple-800 border-purple-300 hover:bg-purple-200'
+                                  ? 'bg-info-100 text-info-800 border-info-300 hover:bg-info-200'
+                                  : 'bg-primary-100 text-primary-800 border-primary-300 hover:bg-primary-200'
                               }`}
                             >
                               <option value="CONFIRMED">Potvrdené</option>
@@ -509,13 +509,13 @@ Nenašli sa žiadne rezervácie spĺňajúce kritériá.
           </div>
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <div className="text-sm text-secondary-600">Čakajúce</div>
-            <div className="text-2xl font-bold text-yellow-600">
+            <div className="text-2xl font-bold text-warning-600">
               {bookingGroups.filter(group => group[0].status === 'PENDING').length}
             </div>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <div className="text-sm text-secondary-600">Potvrdené</div>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-success-600">
               {bookingGroups.filter(group => group[0].status === 'CONFIRMED').length}
             </div>
           </div>

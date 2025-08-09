@@ -215,7 +215,7 @@ export default function ReservationDetailPage() {
             <Button
               onClick={() => handleStatusUpdate('CONFIRMED')}
               disabled={updateLoading}
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-success-600 hover:bg-success-700"
             >
               <CheckIcon className="h-4 w-4 mr-2" />
               Potvrdiť {isMultiRoom ? `${bookingGroup.length} izieb` : 'rezerváciu'}
@@ -226,7 +226,7 @@ export default function ReservationDetailPage() {
             <Button
               onClick={() => handleStatusUpdate('CHECKED_IN')}
               disabled={updateLoading}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-info-600 hover:bg-info-700"
             >
               <CheckIcon className="h-4 w-4 mr-2" />
               Prihlásiť {isMultiRoom ? `${bookingGroup.length} izieb` : 'hosťa'}
@@ -237,7 +237,7 @@ export default function ReservationDetailPage() {
             <Button
               onClick={() => handleStatusUpdate('CHECKED_OUT')}
               disabled={updateLoading}
-              className="bg-purple-600 hover:bg-purple-700"
+              className="bg-primary-600 hover:bg-primary-700"
             >
               <CheckIcon className="h-4 w-4 mr-2" />
               Odhlásiť {isMultiRoom ? `${bookingGroup.length} izieb` : 'hosťa'}
@@ -297,7 +297,7 @@ export default function ReservationDetailPage() {
           {/* Status & Payment */}
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <div className="flex items-center mb-4">
-              <DollarSignIcon className="h-5 w-5 text-purple-500 mr-2" />
+              <DollarSignIcon className="h-5 w-5 text-primary-500 mr-2" />
               <h2 className="text-xl font-semibold text-secondary-900">Stav a platba</h2>
             </div>
             <div className="space-y-4">
@@ -334,7 +334,7 @@ export default function ReservationDetailPage() {
         {/* Room Details */}
         <div className="mt-8 bg-white p-6 rounded-lg shadow-sm">
           <div className="flex items-center mb-4">
-            <HotelIcon className="h-5 w-5 text-green-500 mr-2" />
+            <HotelIcon className="h-5 w-5 text-success-500 mr-2" />
             <h2 className="text-xl font-semibold text-secondary-900">
               {isMultiRoom ? 'Rezervované izby' : 'Detail izby'}
             </h2>
@@ -409,7 +409,7 @@ export default function ReservationDetailPage() {
             {primaryReservation.specialRequests && (
               <div className="bg-white p-6 rounded-lg shadow-sm">
                 <div className="flex items-center mb-4">
-                  <MessageSquareIcon className="h-5 w-5 text-indigo-500 mr-2" />
+                  <MessageSquareIcon className="h-5 w-5 text-info-500 mr-2" />
                   <h2 className="text-xl font-semibold text-secondary-900">Špeciálne požiadavky</h2>
                 </div>
                 <p className="text-secondary-700">{primaryReservation.specialRequests}</p>
