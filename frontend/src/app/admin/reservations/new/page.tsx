@@ -191,7 +191,6 @@ export default function NewReservation() {
       return;
     }
 
-    const nights = calculateNights(checkInDate, checkOutDate);
 
     // Sanitize form data
     const sanitizedData = {

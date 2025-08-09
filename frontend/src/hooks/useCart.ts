@@ -14,7 +14,7 @@ export function useCart() {
       try {
         const parsedItems = JSON.parse(storedItems);
         // Filter out invalid items that might cause errors
-        const validItems = parsedItems.filter((item: any) => 
+        const validItems = parsedItems.filter((item: CartItem) => 
           item && 
           item.roomType && 
           item.roomType.id && 
