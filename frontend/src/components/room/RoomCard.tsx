@@ -20,7 +20,6 @@ interface RoomCardProps {
   checkIn: string;
   checkOut: string;
   guests: number;
-  onViewDetails: (roomType: RoomType) => void;
   onAddToCart: (item: CartItem) => void;
   isInCart?: boolean;
 }
@@ -41,7 +40,6 @@ export function RoomCard({
   checkIn, 
   checkOut, 
   guests, 
-  onViewDetails, 
   onAddToCart,
   isInCart = false
 }: RoomCardProps) {
@@ -182,7 +180,6 @@ export function RoomCard({
         <div className="flex space-x-3">
           <Button
             variant="outline"
-            onClick={() => onViewDetails(roomType)}
             className="flex-1"
           >
             <EyeIcon className="h-4 w-4 mr-2" />

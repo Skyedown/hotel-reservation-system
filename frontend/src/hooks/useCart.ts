@@ -13,7 +13,15 @@ export function useCart() {
     if (storedItems) {
       try {
         const parsedItems = JSON.parse(storedItems);
-        setCartItems(parsedItems);
+        // Filter out invalid items that might cause errors
+        const validItems = parsedItems.filter((item: any) => 
+          item && 
+          item.roomType && 
+          item.roomType.id && 
+          item.checkIn && 
+          item.checkOut
+        );
+        setCartItems(validItems);
       } catch (error) {
         console.error('Error parsing stored cart items:', error);
         localStorage.removeItem('hotelCartItems');
@@ -34,7 +42,7 @@ export function useCart() {
       // Check if item already exists
       const existingItemIndex = prevItems.findIndex(
         existingItem => 
-          existingItem.roomType.id === item.roomType.id &&
+          existingItem?.roomType?.id === item?.roomType?.id &&
           existingItem.checkIn === item.checkIn &&
           existingItem.checkOut === item.checkOut
       );
@@ -54,7 +62,7 @@ export function useCart() {
   const removeFromCart = useCallback((roomTypeId: string, checkIn: string) => {
     setCartItems(prevItems => 
       prevItems.filter(item => 
-        !(item.roomType.id === roomTypeId && item.checkIn === checkIn)
+        !(item?.roomType?.id === roomTypeId && item.checkIn === checkIn)
       )
     );
   }, []);
@@ -62,7 +70,7 @@ export function useCart() {
   const updateCartItem = useCallback((roomTypeId: string, checkIn: string, updates: Partial<CartItem>) => {
     setCartItems(prevItems => 
       prevItems.map(item => 
-        item.roomType.id === roomTypeId && item.checkIn === checkIn
+        item?.roomType?.id === roomTypeId && item.checkIn === checkIn
           ? { ...item, ...updates }
           : item
       )
@@ -83,7 +91,7 @@ export function useCart() {
 
   const isInCart = useCallback((roomTypeId: string, checkIn: string, checkOut: string) => {
     return cartItems.some(item => 
-      item.roomType.id === roomTypeId && 
+      item?.roomType?.id === roomTypeId && 
       item.checkIn === checkIn && 
       item.checkOut === checkOut
     );

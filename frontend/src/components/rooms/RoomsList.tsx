@@ -9,7 +9,6 @@ interface RoomsListProps {
   filteredRoomTypes: RoomType[];
   loading: boolean;
   cartItems: CartItem[];
-  onViewDetails: (roomType: RoomType) => void;
   onAddToCart: (item: CartItem) => void;
   isInCart?: (roomTypeId: string, checkIn: string, checkOut: string) => boolean;
 }
@@ -18,7 +17,6 @@ export function RoomsList({
   roomTypes,
   filteredRoomTypes,
   loading,
-  onViewDetails,
   onAddToCart,
   isInCart = () => false,
 }: RoomsListProps) {
@@ -56,7 +54,6 @@ export function RoomsList({
                 checkIn={getTodayLocalDateString()}
                 checkOut={getTomorrowLocalDateString()}
                 guests={1}
-                onViewDetails={onViewDetails}
                 onAddToCart={onAddToCart}
                 isInCart={isInCart(roomType.id, getTodayLocalDateString(), getTomorrowLocalDateString())}
               />

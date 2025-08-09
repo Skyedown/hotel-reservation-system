@@ -40,12 +40,6 @@ export default function Rooms() {
     setShowCartNotification(false);
   };
 
-
-  const handleViewDetails = (roomType: RoomType) => {
-    // For now, just scroll to the room type or open a modal
-    console.log('View details for room type:', roomType.id);
-  };
-
   return (
     <UserLayout>
       <RoomHero />
@@ -67,7 +61,6 @@ export default function Rooms() {
         filteredRoomTypes={filteredRoomTypes}
         loading={loading}
         cartItems={cartItems}
-        onViewDetails={handleViewDetails}
         onAddToCart={handleAddToCart}
         isInCart={isInCart}
       />
