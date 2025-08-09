@@ -53,7 +53,7 @@ export default function RoomAssignmentModal({ isOpen, onClose, reservations, onS
           console.log(`🔍 Fetching available rooms for ${reservation.roomType.name} (${reservation.roomType.id})`);
           
           // Call the GraphQL query for this specific room type
-          const response = await fetch('http://localhost:4000/graphql', {
+          const response = await fetch(process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:4000/graphql', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
