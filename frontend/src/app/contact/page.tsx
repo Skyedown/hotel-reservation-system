@@ -47,7 +47,6 @@ export default function Contact() {
     // Simulate form submission
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    console.log('Contact form submitted:', sanitizedData);
     setIsSubmitted(true);
     setIsLoading(false);
     reset();

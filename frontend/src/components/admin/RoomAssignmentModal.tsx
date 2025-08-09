@@ -45,12 +45,10 @@ export default function RoomAssignmentModal({ isOpen, onClose, reservations, onS
         // Fetch available rooms for each reservation type separately
         for (const reservation of reservations) {
           if (!reservation.roomType?.id) {
-            console.log(`❌ No room type for reservation ${reservation.id}`);
             roomsByReservation[reservation.id] = [];
             continue;
           }
           
-          console.log(`🔍 Fetching available rooms for ${reservation.roomType.name} (${reservation.roomType.id})`);
           
           // Call the GraphQL query for this specific room type
           const response = await fetch(process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:4000/graphql', {
@@ -84,11 +82,8 @@ export default function RoomAssignmentModal({ isOpen, onClose, reservations, onS
           
           if (result.data?.availableActualRooms) {
             const availableRooms = result.data.availableActualRooms;
-            console.log(`🛏️ Available rooms for ${reservation.roomType.name}:`, 
-              availableRooms.map((r: ActualRoom) => r.roomNumber));
             roomsByReservation[reservation.id] = availableRooms;
           } else {
-            console.log(`❌ No available rooms for ${reservation.roomType.name}:`, result.errors);
             roomsByReservation[reservation.id] = [];
           }
         }

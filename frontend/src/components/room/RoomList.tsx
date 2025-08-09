@@ -15,6 +15,7 @@ interface RoomListProps {
   isLoading?: boolean;
   isInCart?: (roomTypeId: string, checkIn: string, checkOut: string) => boolean;
   onCartAdded?: () => void;
+  onViewDetails?: (roomType: RoomType) => void;
 }
 
 export function RoomList({ 
@@ -25,12 +26,17 @@ export function RoomList({
   onAddToCart, 
   isLoading,
   isInCart = () => false,
-  onCartAdded
+  onCartAdded,
+  onViewDetails
 }: RoomListProps) {
   const [selectedRoomType, setSelectedRoomType] = useState<RoomType | null>(null);
 
   const handleViewDetails = (roomType: RoomType) => {
-    setSelectedRoomType(roomType);
+    if (onViewDetails) {
+      onViewDetails(roomType);
+    } else {
+      setSelectedRoomType(roomType);
+    }
   };
 
   const closeModal = () => {

@@ -21,6 +21,7 @@ interface RoomCardProps {
   checkOut: string;
   guests: number;
   onAddToCart: (item: CartItem) => void;
+  onViewDetails?: (roomType: RoomType) => void;
   isInCart?: boolean;
 }
 
@@ -41,6 +42,7 @@ export function RoomCard({
   checkOut, 
   guests, 
   onAddToCart,
+  onViewDetails,
   isInCart = false
 }: RoomCardProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -181,6 +183,7 @@ export function RoomCard({
           <Button
             variant="outline"
             className="flex-1"
+            onClick={() => onViewDetails?.(roomType)}
           >
             <EyeIcon className="h-4 w-4 mr-2" />
             Zobraziť detaily

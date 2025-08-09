@@ -1,6 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import { RoomCard } from '@/components/room/RoomCard';
+import { RoomDetailsModal } from '@/components/room/RoomDetailsModal';
 import { RoomType, CartItem } from '@/lib/types';
 import { getTodayLocalDateString, getTomorrowLocalDateString } from '@/lib/utils';
 
@@ -20,6 +22,15 @@ export function RoomsList({
   onAddToCart,
   isInCart = () => false,
 }: RoomsListProps) {
+  const [selectedRoomType, setSelectedRoomType] = useState<RoomType | null>(null);
+
+  const handleViewDetails = (roomType: RoomType) => {
+    setSelectedRoomType(roomType);
+  };
+
+  const closeModal = () => {
+    setSelectedRoomType(null);
+  };
   return (
     <section className="py-16 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -54,6 +65,7 @@ export function RoomsList({
                 checkIn={getTodayLocalDateString()}
                 checkOut={getTomorrowLocalDateString()}
                 guests={1}
+                onViewDetails={handleViewDetails}
                 onAddToCart={onAddToCart}
                 isInCart={isInCart(roomType.id, getTodayLocalDateString(), getTomorrowLocalDateString())}
               />
@@ -71,6 +83,19 @@ export function RoomsList({
           </div>
         )}
       </div>
+
+      {/* Room Details Modal */}
+      {selectedRoomType && (
+        <RoomDetailsModal
+          roomType={selectedRoomType}
+          checkIn={getTodayLocalDateString()}
+          checkOut={getTomorrowLocalDateString()}
+          guests={1}
+          onClose={closeModal}
+          onAddToCart={onAddToCart}
+          isInCart={isInCart(selectedRoomType.id, getTodayLocalDateString(), getTomorrowLocalDateString())}
+        />
+      )}
     </section>
   );
 }
