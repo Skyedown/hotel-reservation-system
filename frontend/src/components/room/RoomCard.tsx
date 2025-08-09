@@ -4,12 +4,17 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { RoomType, CartItem } from '@/lib/types';
-import { formatCurrency, getRoomTypeLabel, calculateNights, calculateTotal } from '@/lib/utils';
-import { 
-  UsersIcon, 
-  WifiIcon, 
-  CarIcon, 
-  CoffeeIcon, 
+import {
+  formatCurrency,
+  getRoomTypeLabel,
+  calculateNights,
+  calculateTotal,
+} from '@/lib/utils';
+import {
+  UsersIcon,
+  WifiIcon,
+  CarIcon,
+  CoffeeIcon,
   TvIcon,
   EyeIcon,
   ShoppingCartIcon,
@@ -21,29 +26,32 @@ interface RoomCardProps {
   checkOut: string;
   guests: number;
   onAddToCart: (item: CartItem) => void;
-  onViewDetails?: (roomType: RoomType) => void;
+  onViewDetails: (roomType: RoomType) => void;
   isInCart?: boolean;
 }
 
-const amenityIcons: Record<string, React.ComponentType<{ className?: string }>> = {
+const amenityIcons: Record<
+  string,
+  React.ComponentType<{ className?: string }>
+> = {
   'Wi-Fi': WifiIcon,
-  'Parking': CarIcon,
+  Parking: CarIcon,
   'Coffee Maker': CoffeeIcon,
-  'TV': TvIcon,
-  'Television': TvIcon,
+  TV: TvIcon,
+  Television: TvIcon,
   'Free WiFi': WifiIcon,
   'Air Conditioning': CoffeeIcon, // Using coffee as placeholder
   'Mini Bar': CoffeeIcon,
 };
 
-export function RoomCard({ 
-  roomType, 
-  checkIn, 
-  checkOut, 
-  guests, 
+export function RoomCard({
+  roomType,
+  checkIn,
+  checkOut,
+  guests,
   onAddToCart,
   onViewDetails,
-  isInCart = false
+  isInCart = false,
 }: RoomCardProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const nights = calculateNights(checkIn, checkOut);
@@ -62,13 +70,13 @@ export function RoomCard({
   };
 
   const nextImage = () => {
-    setCurrentImageIndex((prev) => 
+    setCurrentImageIndex((prev) =>
       prev === roomType.images.length - 1 ? 0 : prev + 1
     );
   };
 
   const prevImage = () => {
-    setCurrentImageIndex((prev) => 
+    setCurrentImageIndex((prev) =>
       prev === 0 ? roomType.images.length - 1 : prev - 1
     );
   };
@@ -104,7 +112,9 @@ export function RoomCard({
                     <div
                       key={index}
                       className={`w-2 h-2 rounded-full ${
-                        index === currentImageIndex ? 'bg-white' : 'bg-white bg-opacity-50'
+                        index === currentImageIndex
+                          ? 'bg-white'
+                          : 'bg-white bg-opacity-50'
                       }`}
                     />
                   ))}
@@ -135,24 +145,36 @@ export function RoomCard({
           </div>
         </div>
 
-        <p className="text-secondary-700 mb-4 line-clamp-2">{roomType.description}</p>
+        <p className="text-secondary-700 mb-4 line-clamp-2">
+          {roomType.description}
+        </p>
 
         {/* Capacity */}
         <div className="flex items-center mb-4">
           <UsersIcon className="h-4 w-4 text-secondary-500 mr-2" />
           <span className="text-sm text-secondary-600">
-            Až {roomType.capacity} {roomType.capacity === 1 ? 'hosť' : roomType.capacity < 5 ? 'hostia' : 'hostí'}
+            Až {roomType.capacity}{' '}
+            {roomType.capacity === 1
+              ? 'hosť'
+              : roomType.capacity < 5
+              ? 'hostia'
+              : 'hostí'}
           </span>
         </div>
 
         {/* Amenities */}
         <div className="mb-4">
-          <h4 className="text-sm font-medium text-secondary-900 mb-2">Vybavenie</h4>
+          <h4 className="text-sm font-medium text-secondary-900 mb-2">
+            Vybavenie
+          </h4>
           <div className="flex flex-wrap gap-2">
             {roomType.amenities.slice(0, 4).map((amenity) => {
               const IconComponent = amenityIcons[amenity] || CoffeeIcon;
               return (
-                <div key={amenity} className="flex items-center text-xs text-secondary-600">
+                <div
+                  key={amenity}
+                  className="flex items-center text-xs text-secondary-600"
+                >
                   <IconComponent className="h-3 w-3 mr-1" />
                   {amenity}
                 </div>
@@ -169,7 +191,9 @@ export function RoomCard({
         {/* Booking Summary */}
         <div className="border-t pt-4 mb-4">
           <div className="flex justify-between text-sm text-secondary-600">
-            <span>{nights} {nights === 1 ? 'noc' : nights < 5 ? 'noci' : 'nocí'}</span>
+            <span>
+              {nights} {nights === 1 ? 'noc' : nights < 5 ? 'noci' : 'nocí'}
+            </span>
             <span>{formatCurrency(totalPrice)}</span>
           </div>
           <div className="flex justify-between font-semibold text-secondary-900 mt-1">
@@ -183,7 +207,7 @@ export function RoomCard({
           <Button
             variant="outline"
             className="flex-1"
-            onClick={() => onViewDetails?.(roomType)}
+            onClick={() => onViewDetails(roomType)}
           >
             <EyeIcon className="h-4 w-4 mr-2" />
             Zobraziť detaily
@@ -200,7 +224,12 @@ export function RoomCard({
 
         {roomType.capacity < guests && (
           <p className="text-sm text-error-600 mt-2 text-center">
-            Táto izba môže ubytovať len {roomType.capacity} {roomType.capacity === 1 ? 'hosťa' : roomType.capacity < 5 ? 'hostí' : 'hostí'}
+            Táto izba môže ubytovať len {roomType.capacity}{' '}
+            {roomType.capacity === 1
+              ? 'hosťa'
+              : roomType.capacity < 5
+              ? 'hostí'
+              : 'hostí'}
           </p>
         )}
       </div>
