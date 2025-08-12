@@ -198,6 +198,7 @@ export interface CartItem {
   checkIn: string;
   checkOut: string;
   guests: number;
+  roomCount: number;
   nights: number;
   subtotal: number;
 }

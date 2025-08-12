@@ -16,9 +16,10 @@ interface CartItemCardProps {
   item: CartItem;
   onRemove: (roomTypeId: string, checkIn: string) => void;
   onUpdateGuests: (roomTypeId: string, checkIn: string, newGuests: number) => void;
+  onUpdateRoomCount: (roomTypeId: string, checkIn: string, newRoomCount: number) => void;
 }
 
-export function CartItemCard({ item, onRemove, onUpdateGuests }: CartItemCardProps) {
+export function CartItemCard({ item, onRemove, onUpdateGuests, onUpdateRoomCount }: CartItemCardProps) {
   return (
     <div className="p-6">
       <div className="flex flex-col md:flex-row gap-6">
@@ -87,6 +88,32 @@ export function CartItemCard({ item, onRemove, onUpdateGuests }: CartItemCardPro
             </div>
           </div>
           
+          {/* Room Count */}
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center space-x-3">
+              <span className="text-sm font-medium text-secondary-700">Počet izieb:</span>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => onUpdateRoomCount(item.roomType.id, item.checkIn, item.roomCount - 1)}
+                  disabled={item.roomCount <= 1}
+                  className="w-8 h-8 rounded-full border border-secondary-300 flex items-center justify-center hover:bg-primary-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <MinusIcon className="h-4 w-4" />
+                </button>
+                <span className="w-8 text-center font-medium">{item.roomCount}</span>
+                <button
+                  onClick={() => onUpdateRoomCount(item.roomType.id, item.checkIn, item.roomCount + 1)}
+                  className="w-8 h-8 rounded-full border border-secondary-300 flex items-center justify-center hover:bg-primary-50"
+                >
+                  <PlusIcon className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-sm text-secondary-600">{formatCurrency(item.roomType.price)} za izbu/noc</div>
+            </div>
+          </div>
+
           {/* Guest Count and Pricing */}
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
@@ -102,7 +129,7 @@ export function CartItemCard({ item, onRemove, onUpdateGuests }: CartItemCardPro
                 <span className="w-8 text-center font-medium">{item.guests}</span>
                 <button
                   onClick={() => onUpdateGuests(item.roomType.id, item.checkIn, item.guests + 1)}
-                  disabled={item.guests >= item.roomType.capacity}
+                  disabled={item.guests >= item.roomType.capacity * item.roomCount}
                   className="w-8 h-8 rounded-full border border-secondary-300 flex items-center justify-center hover:bg-primary-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <PlusIcon className="h-4 w-4" />

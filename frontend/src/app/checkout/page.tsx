@@ -96,7 +96,7 @@ export default function Checkout() {
 
   const totalPrice = cartItems.reduce((sum, item) => sum + item.subtotal, 0);
   const totalGuests = cartItems.reduce((sum, item) => sum + item.guests, 0);
-  const totalRooms = cartItems.length;
+  const totalRooms = cartItems.reduce((sum, item) => sum + item.roomCount, 0);
 
   const handleNextStep = async () => {
     let fieldsToValidate: (keyof CheckoutFormData)[] = [];
@@ -197,7 +197,10 @@ export default function Checkout() {
 
       let reservations: Reservation[] = [];
 
-      if (cartItems.length === 1) {
+      // Calculate total room count across all cart items
+      const totalRoomCount = cartItems.reduce((sum, item) => sum + item.roomCount, 0);
+
+      if (totalRoomCount === 1 && cartItems.length === 1) {
         // Single room reservation
         const item = cartItems[0];
         const checkInDate = new Date(item.checkIn + 'T15:00:00.000Z').toISOString();
@@ -223,13 +226,20 @@ export default function Checkout() {
           reservations = [result.data.createReservation];
         }
       } else {
-        // Multi-room reservation
-        const rooms: RoomReservationInput[] = cartItems.map(item => ({
-          roomTypeId: item.roomType.id,
-          checkIn: new Date(item.checkIn + 'T15:00:00.000Z').toISOString(),
-          checkOut: new Date(item.checkOut + 'T11:00:00.000Z').toISOString(),
-          guests: sanitizeNumber(item.guests, 1, 10),
-        }));
+        // Multi-room reservation - expand cart items based on roomCount
+        const rooms: RoomReservationInput[] = [];
+        
+        cartItems.forEach(item => {
+          // Create multiple room entries for each roomCount
+          for (let i = 0; i < item.roomCount; i++) {
+            rooms.push({
+              roomTypeId: item.roomType.id,
+              checkIn: new Date(item.checkIn + 'T15:00:00.000Z').toISOString(),
+              checkOut: new Date(item.checkOut + 'T11:00:00.000Z').toISOString(),
+              guests: sanitizeNumber(Math.ceil(item.guests / item.roomCount), 1, item.roomType.capacity),
+            });
+          }
+        });
 
         const multiRoomInput: CreateMultiRoomReservationInput = {
           guestEmail: sanitizedFormData.guestEmail,

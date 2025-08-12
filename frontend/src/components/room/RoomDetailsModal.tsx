@@ -91,6 +91,7 @@ export function RoomDetailsModal({
       checkIn,
       checkOut,
       guests,
+      roomCount: 1,
       nights,
       subtotal: totalPrice,
     };

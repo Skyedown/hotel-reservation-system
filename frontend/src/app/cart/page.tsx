@@ -9,7 +9,7 @@ import { useCart } from '@/hooks/useCart';
 import { ShoppingCartIcon, ArrowLeftIcon } from 'lucide-react';
 
 export default function Cart() {
-  const { cartItems, removeFromCart, updateCartItem, getTotalPrice, isLoading } = useCart();
+  const { cartItems, removeFromCart, updateGuests, updateRoomCount, getTotalPrice, isLoading } = useCart();
 
   const handleRemoveItem = (roomTypeId: string, checkIn: string) => {
     removeFromCart(roomTypeId, checkIn);
@@ -18,12 +18,13 @@ export default function Cart() {
   const handleUpdateGuests = (roomTypeId: string, checkIn: string, newGuests: number) => {
     const item = cartItems.find(item => item.roomType.id === roomTypeId && item.checkIn === checkIn);
     if (item) {
-      const updatedSubtotal = item.roomType.price * item.nights;
-      updateCartItem(roomTypeId, checkIn, {
-        guests: Math.max(1, Math.min(newGuests, item.roomType.capacity)),
-        subtotal: updatedSubtotal,
-      });
+      const maxGuests = item.roomType.capacity * item.roomCount;
+      updateGuests(roomTypeId, checkIn, Math.max(1, Math.min(newGuests, maxGuests)));
     }
+  };
+
+  const handleUpdateRoomCount = (roomTypeId: string, checkIn: string, newRoomCount: number) => {
+    updateRoomCount(roomTypeId, checkIn, Math.max(1, newRoomCount));
   };
 
   const handleProceedToCheckout = () => {
@@ -37,7 +38,7 @@ export default function Cart() {
 
   const totalPrice = getTotalPrice();
   const totalGuests = cartItems.reduce((sum, item) => sum + item.guests, 0);
-  const totalRooms = cartItems.length;
+  const totalRooms = cartItems.reduce((sum, item) => sum + item.roomCount, 0);
   const totalNights = cartItems.length > 0 ? cartItems[0].nights : 0;
 
   if (isLoading) {
@@ -95,6 +96,7 @@ export default function Cart() {
                       item={item}
                       onRemove={handleRemoveItem}
                       onUpdateGuests={handleUpdateGuests}
+                      onUpdateRoomCount={handleUpdateRoomCount}
                     />
                   ))}
                 </div>

@@ -54,6 +54,7 @@ export function RoomCard({
   isInCart = false,
 }: RoomCardProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [roomCount, setRoomCount] = useState(1);
   const nights = calculateNights(checkIn, checkOut);
   const totalPrice = calculateTotal(roomType.price, nights);
 
@@ -63,8 +64,9 @@ export function RoomCard({
       checkIn,
       checkOut,
       guests,
+      roomCount,
       nights,
-      subtotal: totalPrice,
+      subtotal: totalPrice * roomCount,
     };
     onAddToCart(cartItem);
   };
@@ -188,17 +190,40 @@ export function RoomCard({
           </div>
         </div>
 
+        {/* Room Counter */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-secondary-900">Počet izieb</span>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={() => setRoomCount(Math.max(1, roomCount - 1))}
+                className="w-8 h-8 rounded-full border border-secondary-300 flex items-center justify-center hover:bg-secondary-50 transition-colors"
+                disabled={roomCount <= 1}
+              >
+                -
+              </button>
+              <span className="w-8 text-center font-semibold text-secondary-900">{roomCount}</span>
+              <button
+                onClick={() => setRoomCount(roomCount + 1)}
+                className="w-8 h-8 rounded-full border border-secondary-300 flex items-center justify-center hover:bg-secondary-50 transition-colors"
+              >
+                +
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* Booking Summary */}
         <div className="border-t pt-4 mb-4">
           <div className="flex justify-between text-sm text-secondary-600">
             <span>
-              {nights} {nights === 1 ? 'noc' : nights < 5 ? 'noci' : 'nocí'}
+              {roomCount} {roomCount === 1 ? 'izba' : roomCount < 5 ? 'izby' : 'izieb'} × {nights} {nights === 1 ? 'noc' : nights < 5 ? 'noci' : 'nocí'}
             </span>
-            <span>{formatCurrency(totalPrice)}</span>
+            <span>{formatCurrency(totalPrice)} za izbu</span>
           </div>
           <div className="flex justify-between font-semibold text-secondary-900 mt-1">
             <span>Celkom</span>
-            <span>{formatCurrency(totalPrice)}</span>
+            <span>{formatCurrency(totalPrice * roomCount)}</span>
           </div>
         </div>
 

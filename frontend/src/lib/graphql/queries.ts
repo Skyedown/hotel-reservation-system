@@ -71,6 +71,7 @@ export const GET_ALL_ACTUAL_ROOMS = gql`
     actualRooms {
       id
       roomNumber
+      roomTypeId
       isAvailable
       isUnderMaintenance
       maintenanceNotes

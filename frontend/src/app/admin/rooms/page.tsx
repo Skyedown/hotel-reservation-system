@@ -19,14 +19,39 @@ import {
   XIcon,
   HotelIcon,
   BuildingIcon,
+  ChevronUpIcon,
+  ChevronDownIcon,
+  SearchIcon,
+  FilterIcon,
 } from 'lucide-react';
 import Link from 'next/link';
 
 type ManagementMode = 'room-types' | 'actual-rooms';
+type SortDirection = 'asc' | 'desc';
+
+interface SortConfig {
+  key: string;
+  direction: SortDirection;
+}
 
 export default function AdminRooms() {
   const [admin, setAdmin] = useState<Admin | null>(null);
   const [mode, setMode] = useState<ManagementMode>('room-types');
+  
+  // Sorting and filtering state
+  const [roomTypeSortConfig, setRoomTypeSortConfig] = useState<SortConfig>({ key: '', direction: 'asc' });
+  const [actualRoomSortConfig, setActualRoomSortConfig] = useState<SortConfig>({ key: '', direction: 'asc' });
+  const [roomTypeFilter, setRoomTypeFilter] = useState({
+    search: '',
+    status: 'all', // all, active, inactive
+    priceRange: 'all' // all, low, medium, high
+  });
+  const [actualRoomFilter, setActualRoomFilter] = useState({
+    search: '',
+    availability: 'all', // all, available, unavailable
+    maintenance: 'all', // all, normal, maintenance
+    roomType: 'all' // all, specific room type id
+  });
   
   // Room Type Management
   const [editingRoomType, setEditingRoomType] = useState<RoomType | null>(null);
@@ -88,6 +113,37 @@ export default function AdminRooms() {
     }
   }, [router]);
 
+  // Close editing forms when switching between modes
+  useEffect(() => {
+    // Close room type editing when switching away from room-types
+    if (mode !== 'room-types') {
+      setEditingRoomType(null);
+      setIsCreatingRoomType(false);
+      setRoomTypeFormData({
+        name: '',
+        description: '',
+        price: 0,
+        capacity: 2,
+        amenities: [],
+        images: [],
+        isActive: true,
+      });
+    }
+    
+    // Close actual room editing when switching away from actual-rooms
+    if (mode !== 'actual-rooms') {
+      setEditingActualRoom(null);
+      setIsCreatingActualRoom(false);
+      setActualRoomFormData({
+        roomNumber: '',
+        roomTypeId: '',
+        isAvailable: true,
+        isUnderMaintenance: false,
+        maintenanceNotes: '',
+      });
+    }
+  }, [mode]);
+
   const handleLogout = () => {
     removeAdminToken();
     localStorage.removeItem('admin-info');
@@ -96,6 +152,200 @@ export default function AdminRooms() {
 
   const roomTypes: RoomType[] = roomTypesData?.roomTypes || [];
   const actualRooms: ActualRoom[] = actualRoomsData?.actualRooms || [];
+
+  // Sorting functions
+  const handleRoomTypeSort = (key: string) => {
+    let direction: SortDirection = 'asc';
+    if (roomTypeSortConfig.key === key && roomTypeSortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setRoomTypeSortConfig({ key, direction });
+  };
+
+  const handleActualRoomSort = (key: string) => {
+    let direction: SortDirection = 'asc';
+    if (actualRoomSortConfig.key === key && actualRoomSortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setActualRoomSortConfig({ key, direction });
+  };
+
+  const sortRoomTypes = (roomTypes: RoomType[]) => {
+    if (!roomTypeSortConfig.key) return roomTypes;
+
+    return [...roomTypes].sort((a, b) => {
+      let aValue: any, bValue: any;
+
+      switch (roomTypeSortConfig.key) {
+        case 'name':
+          aValue = a.name.toLowerCase();
+          bValue = b.name.toLowerCase();
+          break;
+        case 'price':
+          aValue = a.price;
+          bValue = b.price;
+          break;
+        case 'capacity':
+          aValue = a.capacity;
+          bValue = b.capacity;
+          break;
+        case 'roomCount':
+          aValue = a.rooms?.length || 0;
+          bValue = b.rooms?.length || 0;
+          break;
+        case 'status':
+          aValue = a.isActive ? 1 : 0;
+          bValue = b.isActive ? 1 : 0;
+          break;
+        default:
+          return 0;
+      }
+
+      if (aValue < bValue) return roomTypeSortConfig.direction === 'asc' ? -1 : 1;
+      if (aValue > bValue) return roomTypeSortConfig.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  };
+
+  const sortActualRooms = (rooms: ActualRoom[]) => {
+    if (!actualRoomSortConfig.key) return rooms;
+
+    return [...rooms].sort((a, b) => {
+      let aValue: any, bValue: any;
+
+      switch (actualRoomSortConfig.key) {
+        case 'roomNumber':
+          aValue = a.roomNumber.toLowerCase();
+          bValue = b.roomNumber.toLowerCase();
+          break;
+        case 'roomType':
+          aValue = a.roomType?.name.toLowerCase() || '';
+          bValue = b.roomType?.name.toLowerCase() || '';
+          break;
+        case 'price':
+          aValue = a.roomType?.price || 0;
+          bValue = b.roomType?.price || 0;
+          break;
+        case 'availability':
+          aValue = a.isAvailable ? 1 : 0;
+          bValue = b.isAvailable ? 1 : 0;
+          break;
+        case 'maintenance':
+          aValue = a.isUnderMaintenance ? 1 : 0;
+          bValue = b.isUnderMaintenance ? 1 : 0;
+          break;
+        default:
+          return 0;
+      }
+
+      if (aValue < bValue) return actualRoomSortConfig.direction === 'asc' ? -1 : 1;
+      if (aValue > bValue) return actualRoomSortConfig.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  };
+
+  // Filtering functions
+  const filterRoomTypes = (roomTypes: RoomType[]) => {
+    return roomTypes.filter((roomType) => {
+      // Search filter
+      if (roomTypeFilter.search) {
+        const searchTerm = roomTypeFilter.search.toLowerCase();
+        if (!roomType.name.toLowerCase().includes(searchTerm) && 
+            !roomType.description.toLowerCase().includes(searchTerm)) {
+          return false;
+        }
+      }
+
+      // Status filter
+      if (roomTypeFilter.status !== 'all') {
+        if (roomTypeFilter.status === 'active' && !roomType.isActive) return false;
+        if (roomTypeFilter.status === 'inactive' && roomType.isActive) return false;
+      }
+
+      // Price range filter
+      if (roomTypeFilter.priceRange !== 'all') {
+        if (roomTypeFilter.priceRange === 'low' && roomType.price > 100) return false;
+        if (roomTypeFilter.priceRange === 'medium' && (roomType.price <= 100 || roomType.price > 200)) return false;
+        if (roomTypeFilter.priceRange === 'high' && roomType.price <= 200) return false;
+      }
+
+      return true;
+    });
+  };
+
+  const filterActualRooms = (rooms: ActualRoom[]) => {
+    return rooms.filter((room) => {
+      // Search filter
+      if (actualRoomFilter.search) {
+        const searchTerm = actualRoomFilter.search.toLowerCase();
+        if (!room.roomNumber.toLowerCase().includes(searchTerm) && 
+            !room.roomType?.name.toLowerCase().includes(searchTerm)) {
+          return false;
+        }
+      }
+
+      // Availability filter
+      if (actualRoomFilter.availability !== 'all') {
+        if (actualRoomFilter.availability === 'available' && !room.isAvailable) return false;
+        if (actualRoomFilter.availability === 'unavailable' && room.isAvailable) return false;
+      }
+
+      // Maintenance filter
+      if (actualRoomFilter.maintenance !== 'all') {
+        if (actualRoomFilter.maintenance === 'normal' && room.isUnderMaintenance) return false;
+        if (actualRoomFilter.maintenance === 'maintenance' && !room.isUnderMaintenance) return false;
+      }
+
+      // Room type filter
+      if (actualRoomFilter.roomType !== 'all') {
+        if (room.roomType?.id !== actualRoomFilter.roomType) return false;
+      }
+
+      return true;
+    });
+  };
+
+  // Get filtered and sorted data
+  const filteredAndSortedRoomTypes = sortRoomTypes(filterRoomTypes(roomTypes));
+  const filteredAndSortedActualRooms = sortActualRooms(filterActualRooms(actualRooms));
+
+  // Sortable header component
+  const SortableHeader = ({ 
+    label, 
+    sortKey, 
+    currentSortConfig, 
+    onSort 
+  }: { 
+    label: string; 
+    sortKey: string; 
+    currentSortConfig: SortConfig; 
+    onSort: (key: string) => void; 
+  }) => (
+    <th 
+      className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider cursor-pointer hover:bg-secondary-100 select-none transition-colors"
+      onClick={() => onSort(sortKey)}
+    >
+      <div className="flex items-center space-x-1">
+        <span>{label}</span>
+        <div className="flex flex-col">
+          <ChevronUpIcon 
+            className={`h-3 w-3 ${
+              currentSortConfig.key === sortKey && currentSortConfig.direction === 'asc' 
+                ? 'text-info-600' 
+                : 'text-secondary-300'
+            }`} 
+          />
+          <ChevronDownIcon 
+            className={`h-3 w-3 -mt-1 ${
+              currentSortConfig.key === sortKey && currentSortConfig.direction === 'desc' 
+                ? 'text-info-600' 
+                : 'text-secondary-300'
+            }`} 
+          />
+        </div>
+      </div>
+    </th>
+  );
 
   // Room Type Management Functions
   const startEditRoomType = (roomType: RoomType) => {
@@ -377,6 +627,50 @@ export default function AdminRooms() {
               </Button>
             </div>
 
+            {/* Room Type Filters */}
+            <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <SearchIcon className="h-4 w-4 text-secondary-400" />
+                  <input
+                    type="text"
+                    placeholder="Vyhľadať typ izby..."
+                    className="px-3 py-2 border border-secondary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-info-500 text-sm"
+                    value={roomTypeFilter.search}
+                    onChange={(e) => setRoomTypeFilter(prev => ({ ...prev, search: e.target.value }))}
+                  />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <FilterIcon className="h-4 w-4 text-secondary-400" />
+                  <select
+                    className="px-3 py-2 border border-secondary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-info-500 text-sm"
+                    value={roomTypeFilter.status}
+                    onChange={(e) => setRoomTypeFilter(prev => ({ ...prev, status: e.target.value }))}
+                  >
+                    <option value="all">Všetky stavy</option>
+                    <option value="active">Aktívne</option>
+                    <option value="inactive">Neaktívne</option>
+                  </select>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-secondary-600">Cena:</span>
+                  <select
+                    className="px-3 py-2 border border-secondary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-info-500 text-sm"
+                    value={roomTypeFilter.priceRange}
+                    onChange={(e) => setRoomTypeFilter(prev => ({ ...prev, priceRange: e.target.value }))}
+                  >
+                    <option value="all">Všetky ceny</option>
+                    <option value="low">Do €100</option>
+                    <option value="medium">€100 - €200</option>
+                    <option value="high">Nad €200</option>
+                  </select>
+                </div>
+                <div className="text-sm text-secondary-600">
+                  Zobrazené: {filteredAndSortedRoomTypes.length} z {roomTypes.length}
+                </div>
+              </div>
+            </div>
+
             {/* Room Type Form */}
             {(editingRoomType || isCreatingRoomType) && (
               <div className="bg-white rounded-lg shadow mb-8 p-6">
@@ -526,28 +820,43 @@ export default function AdminRooms() {
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-secondary-50">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
-                          Typ
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
-                          Cena
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
-                          Kapacita
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
-                          Izby
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
-                          Stav
-                        </th>
+                        <SortableHeader 
+                          label="Typ" 
+                          sortKey="name" 
+                          currentSortConfig={roomTypeSortConfig} 
+                          onSort={handleRoomTypeSort} 
+                        />
+                        <SortableHeader 
+                          label="Cena" 
+                          sortKey="price" 
+                          currentSortConfig={roomTypeSortConfig} 
+                          onSort={handleRoomTypeSort} 
+                        />
+                        <SortableHeader 
+                          label="Kapacita" 
+                          sortKey="capacity" 
+                          currentSortConfig={roomTypeSortConfig} 
+                          onSort={handleRoomTypeSort} 
+                        />
+                        <SortableHeader 
+                          label="Izby" 
+                          sortKey="roomCount" 
+                          currentSortConfig={roomTypeSortConfig} 
+                          onSort={handleRoomTypeSort} 
+                        />
+                        <SortableHeader 
+                          label="Stav" 
+                          sortKey="status" 
+                          currentSortConfig={roomTypeSortConfig} 
+                          onSort={handleRoomTypeSort} 
+                        />
                         <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
                           Akcie
                         </th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {roomTypes.map((roomType) => {
+                      {filteredAndSortedRoomTypes.map((roomType) => {
                         const roomCount = roomType.rooms?.length || 0;
                         const availableCount = roomType.rooms?.filter(r => r.isAvailable).length || 0;
                         return (
@@ -619,6 +928,64 @@ export default function AdminRooms() {
                 <PlusIcon className="h-4 w-4 mr-2" />
                 Pridať izbu
               </Button>
+            </div>
+
+            {/* Actual Room Filters */}
+            <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
+              <div className="flex items-center space-x-4 flex-wrap gap-y-2">
+                <div className="flex items-center space-x-2">
+                  <SearchIcon className="h-4 w-4 text-secondary-400" />
+                  <input
+                    type="text"
+                    placeholder="Vyhľadať číslo izby alebo typ..."
+                    className="px-3 py-2 border border-secondary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-info-500 text-sm"
+                    value={actualRoomFilter.search}
+                    onChange={(e) => setActualRoomFilter(prev => ({ ...prev, search: e.target.value }))}
+                  />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <FilterIcon className="h-4 w-4 text-secondary-400" />
+                  <select
+                    className="px-3 py-2 border border-secondary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-info-500 text-sm"
+                    value={actualRoomFilter.availability}
+                    onChange={(e) => setActualRoomFilter(prev => ({ ...prev, availability: e.target.value }))}
+                  >
+                    <option value="all">Všetky dostupnosti</option>
+                    <option value="available">Dostupné</option>
+                    <option value="unavailable">Nedostupné</option>
+                  </select>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-secondary-600">Údržba:</span>
+                  <select
+                    className="px-3 py-2 border border-secondary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-info-500 text-sm"
+                    value={actualRoomFilter.maintenance}
+                    onChange={(e) => setActualRoomFilter(prev => ({ ...prev, maintenance: e.target.value }))}
+                  >
+                    <option value="all">Všetky</option>
+                    <option value="normal">Normálne</option>
+                    <option value="maintenance">Na údržbe</option>
+                  </select>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-secondary-600">Typ izby:</span>
+                  <select
+                    className="px-3 py-2 border border-secondary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-info-500 text-sm"
+                    value={actualRoomFilter.roomType}
+                    onChange={(e) => setActualRoomFilter(prev => ({ ...prev, roomType: e.target.value }))}
+                  >
+                    <option value="all">Všetky typy</option>
+                    {roomTypes.filter(rt => rt.isActive).map((roomType) => (
+                      <option key={roomType.id} value={roomType.id}>
+                        {roomType.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="text-sm text-secondary-600">
+                  Zobrazené: {filteredAndSortedActualRooms.length} z {actualRooms.length}
+                </div>
+              </div>
             </div>
 
             {/* Actual Room Form */}
@@ -727,28 +1094,43 @@ export default function AdminRooms() {
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-secondary-50">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
-                          Číslo izby
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
-                          Typ
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
-                          Cena
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
-                          Stav
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
-                          Údržba
-                        </th>
+                        <SortableHeader 
+                          label="Číslo izby" 
+                          sortKey="roomNumber" 
+                          currentSortConfig={actualRoomSortConfig} 
+                          onSort={handleActualRoomSort} 
+                        />
+                        <SortableHeader 
+                          label="Typ" 
+                          sortKey="roomType" 
+                          currentSortConfig={actualRoomSortConfig} 
+                          onSort={handleActualRoomSort} 
+                        />
+                        <SortableHeader 
+                          label="Cena" 
+                          sortKey="price" 
+                          currentSortConfig={actualRoomSortConfig} 
+                          onSort={handleActualRoomSort} 
+                        />
+                        <SortableHeader 
+                          label="Stav" 
+                          sortKey="availability" 
+                          currentSortConfig={actualRoomSortConfig} 
+                          onSort={handleActualRoomSort} 
+                        />
+                        <SortableHeader 
+                          label="Údržba" 
+                          sortKey="maintenance" 
+                          currentSortConfig={actualRoomSortConfig} 
+                          onSort={handleActualRoomSort} 
+                        />
                         <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
                           Akcie
                         </th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {actualRooms.map((room) => (
+                      {filteredAndSortedActualRooms.map((room) => (
                         <tr key={room.id}>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm font-medium text-secondary-900">

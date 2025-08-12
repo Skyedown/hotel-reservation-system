@@ -59,7 +59,7 @@ export default function RoomAssignmentModal({ isOpen, onClose, reservations, onS
             },
             body: JSON.stringify({
               query: `
-                query GetAvailableActualRooms($roomTypeId: ID!, $checkIn: String!, $checkOut: String!, $excludeReservationIds: [ID!]) {
+                query GetRoomsDebug($roomTypeId: ID!, $checkIn: String!, $checkOut: String!, $excludeReservationIds: [ID!]) {
                   availableActualRooms(roomTypeId: $roomTypeId, checkIn: $checkIn, checkOut: $checkOut, excludeReservationIds: $excludeReservationIds) {
                     id
                     roomNumber
@@ -67,21 +67,36 @@ export default function RoomAssignmentModal({ isOpen, onClose, reservations, onS
                     isUnderMaintenance
                     maintenanceNotes
                   }
+                  roomType(id: $roomTypeId) {
+                    rooms {
+                      id
+                      roomNumber
+                      isAvailable
+                      isUnderMaintenance
+                      maintenanceNotes
+                    }
+                  }
                 }
               `,
               variables: {
                 roomTypeId: reservation.roomType.id,
                 checkIn: reservation.checkIn,
                 checkOut: reservation.checkOut,
-                excludeReservationIds: reservations.map(res => res.id),
+                excludeReservationIds: [],
               }
             })
           });
           
           const result = await response.json();
+          console.log(`Backend response for ${reservation.roomType?.name}:`, result);
           
-          if (result.data?.availableActualRooms) {
-            const availableRooms = result.data.availableActualRooms;
+          if (result.data) {
+            const availableRooms = result.data.availableActualRooms || [];
+            const allRooms = result.data.roomType?.rooms || [];
+            
+            console.log(`All rooms for ${reservation.roomType?.name}:`, allRooms);
+            console.log(`Available rooms for ${reservation.roomType?.name}:`, availableRooms);
+            
             roomsByReservation[reservation.id] = availableRooms;
           } else {
             roomsByReservation[reservation.id] = [];
@@ -118,10 +133,20 @@ export default function RoomAssignmentModal({ isOpen, onClose, reservations, onS
   }, [isOpen]);
 
   const handleRoomSelect = (reservationId: string, roomId: string) => {
-    setSelectedRooms(prev => ({
-      ...prev,
-      [reservationId]: roomId
-    }));
+    setSelectedRooms(prev => {
+      // If the same room is clicked again, deselect it
+      if (prev[reservationId] === roomId) {
+        const newSelectedRooms = { ...prev };
+        delete newSelectedRooms[reservationId];
+        return newSelectedRooms;
+      }
+      
+      // Otherwise, select the new room
+      return {
+        ...prev,
+        [reservationId]: roomId
+      };
+    });
   };
 
   const handleAssignRooms = async () => {
@@ -217,7 +242,7 @@ export default function RoomAssignmentModal({ isOpen, onClose, reservations, onS
 
                 <div className="space-y-2">
                   <div className="text-sm text-secondary-600 mb-2">
-                    Vyberte dostupnú izbu:
+                    Vyberte dostupnú izbu: <span className="text-xs text-secondary-500">(kliknite znovu pre zrušenie výberu)</span>
                   </div>
                   
                   {loadingRooms ? (
@@ -250,13 +275,17 @@ export default function RoomAssignmentModal({ isOpen, onClose, reservations, onS
                           <button
                             key={room.id}
                             onClick={() => handleRoomSelect(reservation.id, room.id)}
-                            className={`p-3 text-sm rounded border-2 transition-colors ${
+                            title={isSelectedByCurrent ? 'Kliknite pre zrušenie výberu' : 'Kliknite pre výber'}
+                            className={`p-3 text-sm rounded border-2 transition-colors relative ${
                               isSelectedByCurrent
-                                ? 'border-success-500 bg-success-50 text-success-700'
+                                ? 'border-success-500 bg-success-50 text-success-700 hover:border-success-600 hover:bg-success-100'
                                 : 'border-secondary-300 bg-background text-secondary-700 hover:border-success-300 hover:bg-success-50'
                             }`}
                           >
                             <div className="font-medium">Izba {room.roomNumber}</div>
+                            {isSelectedByCurrent && (
+                              <div className="text-xs text-success-600 mt-1">✓ Vybraté</div>
+                            )}
                             {room.isUnderMaintenance && (
                               <div className="text-xs text-orange-600 flex items-center mt-1">
                                 <WrenchIcon className="h-3 w-3 mr-1" />

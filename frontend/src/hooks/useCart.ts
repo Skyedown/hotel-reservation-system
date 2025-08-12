@@ -97,11 +97,34 @@ export function useCart() {
     );
   }, [cartItems]);
 
+  const updateGuests = useCallback((roomTypeId: string, checkIn: string, newGuests: number) => {
+    updateCartItem(roomTypeId, checkIn, { guests: newGuests });
+  }, [updateCartItem]);
+
+  const updateRoomCount = useCallback((roomTypeId: string, checkIn: string, newRoomCount: number) => {
+    setCartItems(prevItems => 
+      prevItems.map(item => {
+        if (item?.roomType?.id === roomTypeId && item.checkIn === checkIn) {
+          const nights = item.nights;
+          const pricePerRoom = item.roomType.price * nights;
+          return {
+            ...item,
+            roomCount: newRoomCount,
+            subtotal: pricePerRoom * newRoomCount
+          };
+        }
+        return item;
+      })
+    );
+  }, []);
+
   return {
     cartItems,
     addToCart,
     removeFromCart,
     updateCartItem,
+    updateGuests,
+    updateRoomCount,
     clearCart,
     getCartCount,
     getTotalPrice,
