@@ -174,7 +174,7 @@ export default function AdminRooms() {
     if (!roomTypeSortConfig.key) return roomTypes;
 
     return [...roomTypes].sort((a, b) => {
-      let aValue: any, bValue: any;
+      let aValue: string | number, bValue: string | number;
 
       switch (roomTypeSortConfig.key) {
         case 'name':
@@ -211,7 +211,7 @@ export default function AdminRooms() {
     if (!actualRoomSortConfig.key) return rooms;
 
     return [...rooms].sort((a, b) => {
-      let aValue: any, bValue: any;
+      let aValue: string | number, bValue: string | number;
 
       switch (actualRoomSortConfig.key) {
         case 'roomNumber':

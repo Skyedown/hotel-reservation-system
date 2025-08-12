@@ -44,7 +44,8 @@ export default function Contact() {
       message: sanitizeTextarea(data.message),
     };
     
-    // Simulate form submission
+    // Simulate form submission (in production, this would send sanitizedData to API)
+    console.log('Contact form submitted:', sanitizedData);
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     setIsSubmitted(true);
