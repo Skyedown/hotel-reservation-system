@@ -1,40 +1,48 @@
 import validator from 'validator';
-import { JSDOM } from 'jsdom';
-
-// Use require for isomorphic-dompurify due to module export issues
-const createDOMPurify = require('isomorphic-dompurify');
-
-// Initialize DOMPurify for server-side use
-const window = new JSDOM('').window;
-const purify = createDOMPurify(window);
-
-// Configure DOMPurify with strict settings
-const sanitizeConfig = {
-  ALLOWED_TAGS: [], // No HTML tags allowed
-  ALLOWED_ATTR: [], // No attributes allowed
-  KEEP_CONTENT: true, // Keep text content, remove tags
-  RETURN_TRUSTED_TYPE: false,
-};
 
 /**
  * Sanitize HTML content and prevent XSS attacks
  * Strips all HTML tags and keeps only text content
+ * Server-side implementation without DOM dependencies
  */
 export function sanitizeHtml(input: string): string {
   if (!input || typeof input !== 'string') return '';
   
-  // First pass: sanitize with DOMPurify
-  const sanitized = purify.sanitize(input, sanitizeConfig);
+  // Remove HTML tags using comprehensive regex patterns
+  let sanitized = input
+    // Remove script tags and their content
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+    // Remove style tags and their content
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+    // Remove all other HTML tags but keep content
+    .replace(/<[^>]*>/g, '')
+    // Remove HTML entities and decode common ones
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#x27;/g, "'")
+    .replace(/&#x2F;/g, '/')
+    .replace(/&#x60;/g, '`');
   
-  // Second pass: additional escaping for safety
-  return sanitized
+  // Escape potentially dangerous characters
+  sanitized = sanitized
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#x27;')
     .replace(/\//g, '&#x2F;')
-    .trim();
+    .replace(/`/g, '&#x60;');
+  
+  // Remove any remaining dangerous patterns
+  sanitized = sanitized
+    .replace(/javascript:/gi, '')
+    .replace(/vbscript:/gi, '')
+    .replace(/data:/gi, '')
+    .replace(/on\w+\s*=/gi, '');
+  
+  return sanitized.trim();
 }
 
 /**
