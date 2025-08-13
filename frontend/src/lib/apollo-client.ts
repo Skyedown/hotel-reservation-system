@@ -4,7 +4,8 @@ import { getAdminToken } from './utils';
 
 const getGraphQLURL = () => {
   if (process.env.NODE_ENV === 'production') {
-    return 'https://api.peterlehocky.site/graphql';
+    // Try the main domain with /graphql path instead of subdomain
+    return 'https://peterlehocky.site/graphql';
   }
   return process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:4000/graphql';
 };
