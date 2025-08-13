@@ -21,7 +21,6 @@ const cspHeader = `
     manifest-src 'self';
     navigate-to 'self' https://checkout.stripe.com https://js.stripe.com;
     trusted-types *;
-    ${isDevelopment ? '/* require-trusted-types-for \'script\'; */' : '/* require-trusted-types-for \'script\'; */'}
     upgrade-insecure-requests;
 `
 

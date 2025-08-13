@@ -1,8 +1,7 @@
-import createDOMPurify from 'isomorphic-dompurify';
+import DOMPurify from 'dompurify';
 import validator from 'validator';
 
 // Create DOMPurify instance for server-side sanitization
-const DOMPurify = createDOMPurify;
 
 // Configure DOMPurify with strict settings
 const sanitizeConfig = {
@@ -18,10 +17,10 @@ const sanitizeConfig = {
  */
 export function sanitizeHtml(input: string): string {
   if (!input || typeof input !== 'string') return '';
-  
+
   // First pass: sanitize with DOMPurify
   const sanitized = DOMPurify.sanitize(input, sanitizeConfig);
-  
+
   // Second pass: additional escaping for safety
   return sanitized
     .replace(/</g, '&lt;')
@@ -37,7 +36,7 @@ export function sanitizeHtml(input: string): string {
  */
 export function sanitizeEmail(email: string): string {
   if (!email || typeof email !== 'string') return '';
-  
+
   const normalizedEmail = validator.normalizeEmail(email, {
     gmail_lowercase: true,
     gmail_remove_dots: false,
@@ -49,7 +48,7 @@ export function sanitizeEmail(email: string): string {
     icloud_lowercase: true,
     icloud_remove_subaddress: false,
   });
-  
+
   return normalizedEmail || '';
 }
 
@@ -58,7 +57,7 @@ export function sanitizeEmail(email: string): string {
  */
 export function sanitizePhone(phone: string): string {
   if (!phone || typeof phone !== 'string') return '';
-  
+
   // Remove all non-digit, non-plus, non-space, non-dash, non-parentheses characters
   return phone
     .replace(/[^0-9+\-\s()]/g, '')
@@ -71,7 +70,7 @@ export function sanitizePhone(phone: string): string {
  */
 export function sanitizeText(input: string, maxLength = 1000): string {
   if (!input || typeof input !== 'string') return '';
-  
+
   return sanitizeHtml(input).slice(0, maxLength);
 }
 
@@ -80,7 +79,7 @@ export function sanitizeText(input: string, maxLength = 1000): string {
  */
 export function sanitizeLongText(input: string, maxLength = 5000): string {
   if (!input || typeof input !== 'string') return '';
-  
+
   return sanitizeHtml(input).slice(0, maxLength);
 }
 
@@ -89,22 +88,24 @@ export function sanitizeLongText(input: string, maxLength = 5000): string {
  */
 export function sanitizeUrl(url: string): string {
   if (!url || typeof url !== 'string') return '';
-  
+
   // Basic URL validation and sanitization
   const trimmed = url.trim();
-  
+
   // Check if it's a valid URL format
-  if (!validator.isURL(trimmed, {
-    protocols: ['http', 'https'],
-    require_protocol: true,
-    require_valid_protocol: true,
-    allow_underscores: false,
-    allow_trailing_dot: false,
-    allow_protocol_relative_urls: false,
-  })) {
+  if (
+    !validator.isURL(trimmed, {
+      protocols: ['http', 'https'],
+      require_protocol: true,
+      require_valid_protocol: true,
+      allow_underscores: false,
+      allow_trailing_dot: false,
+      allow_protocol_relative_urls: false,
+    })
+  ) {
     return '';
   }
-  
+
   return trimmed.slice(0, 2083); // Maximum URL length
 }
 
@@ -113,7 +114,7 @@ export function sanitizeUrl(url: string): string {
  */
 export function sanitizeRoomNumber(roomNumber: string): string {
   if (!roomNumber || typeof roomNumber !== 'string') return '';
-  
+
   return roomNumber
     .replace(/[^0-9A-Za-z\-]/g, '')
     .trim()
@@ -123,9 +124,13 @@ export function sanitizeRoomNumber(roomNumber: string): string {
 /**
  * Sanitize numeric input
  */
-export function sanitizeNumber(input: number | string, min?: number, max?: number): number {
+export function sanitizeNumber(
+  input: number | string,
+  min?: number,
+  max?: number
+): number {
   let num: number;
-  
+
   if (typeof input === 'string') {
     // Remove non-numeric characters except decimal point and minus
     const cleaned = input.replace(/[^0-9.-]/g, '');
@@ -133,25 +138,29 @@ export function sanitizeNumber(input: number | string, min?: number, max?: numbe
   } else {
     num = input;
   }
-  
+
   if (isNaN(num) || !isFinite(num)) return 0;
-  
+
   if (min !== undefined && num < min) return min;
   if (max !== undefined && num > max) return max;
-  
+
   return num;
 }
 
 /**
  * Sanitize array of strings
  */
-export function sanitizeStringArray(arr: string[], maxItems = 20, maxLength = 100): string[] {
+export function sanitizeStringArray(
+  arr: string[],
+  maxItems = 20,
+  maxLength = 100
+): string[] {
   if (!Array.isArray(arr)) return [];
-  
+
   return arr
     .slice(0, maxItems)
-    .map(item => sanitizeText(item, maxLength))
-    .filter(item => item.length > 0);
+    .map((item) => sanitizeText(item, maxLength))
+    .filter((item) => item.length > 0);
 }
 
 /**

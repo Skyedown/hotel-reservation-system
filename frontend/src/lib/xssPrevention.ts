@@ -426,23 +426,7 @@ export function handleCSPViolation(event: SecurityPolicyViolationEvent): void {
     columnNumber: event.columnNumber
   });
   
-  // In production, report to security monitoring
-  if (process.env.NODE_ENV === 'production') {
-    // Report to backend security endpoint
-    const backendUrl = 'https://api.peterlehocky.site';
-    fetch(`${backendUrl}/api/security/csp-violations`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        type: 'csp-violation',
-        blockedURI: event.blockedURI,
-        violatedDirective: event.violatedDirective,
-        sourceFile: event.sourceFile,
-        lineNumber: event.lineNumber,
-        timestamp: new Date().toISOString()
-      })
-    }).catch(() => console.error('Failed to report CSP violation'));
-  }
+  // CSP violations are logged to console only
 }
 
 /**
