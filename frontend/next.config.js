@@ -21,7 +21,7 @@ const cspHeader = `
     manifest-src 'self';
     navigate-to 'self' https://checkout.stripe.com https://js.stripe.com;
     trusted-types hotel-system-policy default 'nextjs#bundler'${isDevelopment ? ' \'unsafe-inline\'' : ''};
-    ${isDevelopment ? '/* require-trusted-types-for \'script\'; */' : 'require-trusted-types-for \'script\';'}
+    ${isDevelopment ? '/* require-trusted-types-for \'script\'; */' : '/* require-trusted-types-for \'script\'; */'}
     upgrade-insecure-requests;
 `
 
