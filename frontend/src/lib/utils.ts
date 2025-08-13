@@ -123,15 +123,7 @@ export function getPaymentStatusColor(status: string): string {
 }
 
 // Form validation
-export function validateEmail(email: string): boolean {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-}
-
-export function validatePhone(phone: string): boolean {
-  const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
-  return phoneRegex.test(phone.replace(/[\s\-\(\)]/g, ''));
-}
+// validateEmail and validatePhone functions removed - unused in codebase
 
 // Error handling
 export function getErrorMessage(error: unknown): string {
@@ -270,7 +262,4 @@ export function sanitizeTextarea(input: string): string {
 }
 
 // URL utilities
-export function generateReservationUrl(accessToken: string): string {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-  return `${baseUrl}/reservation/${accessToken}`;
-}
+// generateReservationUrl function removed - unused in codebase

@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form';
 import { GET_ALL_ROOM_TYPES } from '@/lib/graphql/queries';
 import { CREATE_RESERVATION } from '@/lib/graphql/mutations';
 import { getAdminToken, removeAdminToken, formatCurrency, calculateNights, calculateTotal, isValidDateRange, getMinCheckInDate, getMinCheckOutDate, getErrorMessage, sanitizeString, sanitizeEmail, sanitizePhone, sanitizeTextarea, sanitizeNumber, toLocalDateString } from '@/lib/utils';
-import { Admin, RoomType } from '@/lib/types';
+import { Admin, RoomType, ReservationFormData } from '@/lib/types';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import DatePicker from 'react-datepicker';
@@ -21,16 +21,12 @@ import {
 import Link from 'next/link';
 import "react-datepicker/dist/react-datepicker.css";
 
-interface ReservationFormData {
-  guestFirstName: string;
-  guestLastName: string;
-  guestEmail: string;
-  guestPhone: string;
+interface AdminReservationFormData extends ReservationFormData {
+  guestPhone: string; // Make required for admin forms
   roomTypeId: string;
   checkIn: Date;
   checkOut: Date;
   guests: number;
-  specialRequests?: string;
 }
 
 export default function NewReservation() {
@@ -52,7 +48,7 @@ export default function NewReservation() {
     setError,
     watch,
     setValue,
-  } = useForm<ReservationFormData>({
+  } = useForm<AdminReservationFormData>({
     defaultValues: {
       guests: 2,
       checkIn: checkInDate,
@@ -180,7 +176,7 @@ export default function NewReservation() {
     router.push('/admin/login');
   };
 
-  const onSubmit = async (data: ReservationFormData) => {
+  const onSubmit = async (data: AdminReservationFormData) => {
     if (!selectedRoomType) {
       setError('roomTypeId', { message: 'Prosím vyberte typ izby' });
       return;

@@ -24,7 +24,12 @@ export default function Cart() {
   };
 
   const handleUpdateRoomCount = (roomTypeId: string, checkIn: string, newRoomCount: number) => {
-    updateRoomCount(roomTypeId, checkIn, Math.max(1, newRoomCount));
+    if (newRoomCount <= 0) {
+      // Remove the item from cart when room count reaches 0
+      removeFromCart(roomTypeId, checkIn);
+    } else {
+      updateRoomCount(roomTypeId, checkIn, newRoomCount);
+    }
   };
 
   const handleProceedToCheckout = () => {

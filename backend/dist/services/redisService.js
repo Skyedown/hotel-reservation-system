@@ -111,6 +111,39 @@ class RedisService {
             console.error('Error deleting cache:', error);
         }
     }
+    // Rate limiting utilities
+    async incr(key) {
+        try {
+            return await this.client.incr(key);
+        }
+        catch (error) {
+            console.error('Error incrementing key:', error);
+            throw error;
+        }
+    }
+    async expire(key, seconds) {
+        try {
+            const result = await this.client.expire(key, seconds);
+            return result === 1;
+        }
+        catch (error) {
+            console.error('Error setting expiration:', error);
+            throw error;
+        }
+    }
+    async ttl(key) {
+        try {
+            return await this.client.ttl(key);
+        }
+        catch (error) {
+            console.error('Error getting TTL:', error);
+            throw error;
+        }
+    }
+    // Get pipeline for batch operations
+    pipeline() {
+        return this.client.pipeline();
+    }
     // Rate Limiting
     async incrementWithExpiry(key, ttlSeconds = 60) {
         try {

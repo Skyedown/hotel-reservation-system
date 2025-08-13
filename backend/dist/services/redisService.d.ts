@@ -11,6 +11,10 @@ declare class RedisService {
     set(key: string, value: any, ttlSeconds?: number): Promise<void>;
     get(key: string): Promise<any | null>;
     del(key: string): Promise<void>;
+    incr(key: string): Promise<number>;
+    expire(key: string, seconds: number): Promise<boolean>;
+    ttl(key: string): Promise<number>;
+    pipeline(): import("ioredis").ChainableCommander;
     incrementWithExpiry(key: string, ttlSeconds?: number): Promise<number>;
     cacheAvailableRooms(checkIn: string, checkOut: string, guests: number, rooms: any[]): Promise<void>;
     getCachedAvailableRooms(checkIn: string, checkOut: string, guests: number): Promise<any[] | null>;

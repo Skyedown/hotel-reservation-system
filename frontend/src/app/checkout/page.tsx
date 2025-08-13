@@ -17,13 +17,7 @@ import {
   CREATE_PAYMENT_INTENT,
 } from '@/lib/graphql/mutations';
 import { CartItem, CreateReservationInput, CreateMultiRoomReservationInput, RoomReservationInput, Reservation } from '@/lib/types';
-import {
-  sanitizeString,
-  sanitizeEmail,
-  sanitizePhone,
-  sanitizeTextarea,
-  sanitizeNumber,
-} from '@/lib/utils';
+import { validateAndSanitizeFormData } from '@/lib/xssPrevention';
 
 interface CheckoutFormData {
   guestFirstName: string;
@@ -184,15 +178,27 @@ export default function Checkout() {
         return;
       }
 
-      // Sanitize form data
-      const sanitizedFormData = {
-        guestFirstName: sanitizeString(formData.guestFirstName),
-        guestLastName: sanitizeString(formData.guestLastName),
-        guestEmail: sanitizeEmail(formData.guestEmail),
-        guestPhone: sanitizePhone(formData.guestPhone || ''),
-        specialRequests: formData.specialRequests
-          ? sanitizeTextarea(formData.specialRequests)
-          : '',
+      // Sanitize form data using comprehensive XSS prevention
+      const { sanitized: sanitizedFormData, isValid, errors } = validateAndSanitizeFormData({
+        firstName: formData.guestFirstName,
+        lastName: formData.guestLastName,
+        email: formData.guestEmail,
+        phone: formData.guestPhone || '',
+        specialRequests: formData.specialRequests || '',
+      });
+
+      if (!isValid) {
+        setError(`Invalid input: ${errors.join(', ')}`);
+        return;
+      }
+
+      // Map sanitized data to expected format
+      const processedFormData = {
+        guestFirstName: sanitizedFormData.firstName as string,
+        guestLastName: sanitizedFormData.lastName as string,
+        guestEmail: sanitizedFormData.email as string,
+        guestPhone: sanitizedFormData.phone as string,
+        specialRequests: sanitizedFormData.specialRequests as string,
       };
 
       let reservations: Reservation[] = [];
@@ -208,14 +214,14 @@ export default function Checkout() {
 
         const reservationInput: CreateReservationInput = {
           roomTypeId: item.roomType.id,
-          guestEmail: sanitizedFormData.guestEmail,
-          guestFirstName: sanitizedFormData.guestFirstName,
-          guestLastName: sanitizedFormData.guestLastName,
-          guestPhone: sanitizedFormData.guestPhone,
+          guestEmail: processedFormData.guestEmail,
+          guestFirstName: processedFormData.guestFirstName,
+          guestLastName: processedFormData.guestLastName,
+          guestPhone: processedFormData.guestPhone,
           checkIn: checkInDate,
           checkOut: checkOutDate,
-          guests: sanitizeNumber(item.guests, 1, 10),
-          specialRequests: sanitizedFormData.specialRequests,
+          guests: Math.max(1, Math.min(10, item.guests)), // Safe number bounds
+          specialRequests: processedFormData.specialRequests,
         };
 
         const result = await createReservation({
@@ -236,17 +242,17 @@ export default function Checkout() {
               roomTypeId: item.roomType.id,
               checkIn: new Date(item.checkIn + 'T15:00:00.000Z').toISOString(),
               checkOut: new Date(item.checkOut + 'T11:00:00.000Z').toISOString(),
-              guests: sanitizeNumber(Math.ceil(item.guests / item.roomCount), 1, item.roomType.capacity),
+              guests: Math.max(1, Math.min(item.roomType.capacity, Math.ceil(item.guests / item.roomCount))),
             });
           }
         });
 
         const multiRoomInput: CreateMultiRoomReservationInput = {
-          guestEmail: sanitizedFormData.guestEmail,
-          guestFirstName: sanitizedFormData.guestFirstName,
-          guestLastName: sanitizedFormData.guestLastName,
-          guestPhone: sanitizedFormData.guestPhone,
-          specialRequests: sanitizedFormData.specialRequests,
+          guestEmail: processedFormData.guestEmail,
+          guestFirstName: processedFormData.guestFirstName,
+          guestLastName: processedFormData.guestLastName,
+          guestPhone: processedFormData.guestPhone,
+          specialRequests: processedFormData.specialRequests,
           rooms
         };
 

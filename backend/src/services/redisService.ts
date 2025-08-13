@@ -122,6 +122,40 @@ class RedisService {
     }
   }
 
+  // Rate limiting utilities
+  async incr(key: string): Promise<number> {
+    try {
+      return await this.client.incr(key);
+    } catch (error) {
+      console.error('Error incrementing key:', error);
+      throw error;
+    }
+  }
+
+  async expire(key: string, seconds: number): Promise<boolean> {
+    try {
+      const result = await this.client.expire(key, seconds);
+      return result === 1;
+    } catch (error) {
+      console.error('Error setting expiration:', error);
+      throw error;
+    }
+  }
+
+  async ttl(key: string): Promise<number> {
+    try {
+      return await this.client.ttl(key);
+    } catch (error) {
+      console.error('Error getting TTL:', error);
+      throw error;
+    }
+  }
+
+  // Get pipeline for batch operations
+  pipeline() {
+    return this.client.pipeline();
+  }
+
   // Rate Limiting
   async incrementWithExpiry(
     key: string,

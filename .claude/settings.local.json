@@ -26,7 +26,9 @@
       "Bash(npx eslint:*)",
       "Bash(grep:*)",
       "Bash(npm run type-check:*)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "Bash(npm run check:types:*)",
+      "Bash(npm run lint)"
     ],
     "deny": []
   }

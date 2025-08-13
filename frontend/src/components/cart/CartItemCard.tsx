@@ -95,8 +95,12 @@ export function CartItemCard({ item, onRemove, onUpdateGuests, onUpdateRoomCount
               <div className="flex items-center space-x-2">
                 <button
                   onClick={() => onUpdateRoomCount(item.roomType.id, item.checkIn, item.roomCount - 1)}
-                  disabled={item.roomCount <= 1}
-                  className="w-8 h-8 rounded-full border border-secondary-300 flex items-center justify-center hover:bg-primary-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  title={item.roomCount === 1 ? "Odstrániť z košíka" : "Znížiť počet izieb"}
+                  className={`w-8 h-8 rounded-full border flex items-center justify-center transition-colors ${
+                    item.roomCount === 1 
+                      ? 'border-error-300 text-error-600 hover:bg-error-50' 
+                      : 'border-secondary-300 hover:bg-primary-50'
+                  }`}
                 >
                   <MinusIcon className="h-4 w-4" />
                 </button>

@@ -60,9 +60,7 @@ export declare const paymentResolvers: {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            status: import(".prisma/client").$Enums.ReservationStatus;
             roomTypeId: string;
-            actualRoomId: string | null;
             guestEmail: string;
             guestFirstName: string;
             guestLastName: string;
@@ -70,13 +68,15 @@ export declare const paymentResolvers: {
             checkIn: Date;
             checkOut: Date;
             guests: number;
+            specialRequests: string | null;
+            status: import(".prisma/client").$Enums.ReservationStatus;
+            notes: string | null;
+            actualRoomId: string | null;
             totalPrice: number;
             paymentStatus: import(".prisma/client").$Enums.PaymentStatus;
             paymentIntentId: string | null;
-            specialRequests: string | null;
             accessToken: string;
             lastStatusChange: Date;
-            notes: string | null;
         }>;
     };
 };

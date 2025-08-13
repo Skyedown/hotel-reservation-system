@@ -79,7 +79,7 @@ export declare const roomResolvers: {
         }[]>;
     };
     Mutation: {
-        createRoomType: (_: any, { input }: any, { admin, prisma }: Context) => Promise<{
+        createRoomType: (_: any, { input }: any, context: Context) => Promise<{
             name: string;
             id: string;
             createdAt: Date;
@@ -129,9 +129,7 @@ export declare const roomResolvers: {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            status: import(".prisma/client").$Enums.ReservationStatus;
             roomTypeId: string;
-            actualRoomId: string | null;
             guestEmail: string;
             guestFirstName: string;
             guestLastName: string;
@@ -139,13 +137,15 @@ export declare const roomResolvers: {
             checkIn: Date;
             checkOut: Date;
             guests: number;
+            specialRequests: string | null;
+            status: import(".prisma/client").$Enums.ReservationStatus;
+            notes: string | null;
+            actualRoomId: string | null;
             totalPrice: number;
             paymentStatus: import(".prisma/client").$Enums.PaymentStatus;
             paymentIntentId: string | null;
-            specialRequests: string | null;
             accessToken: string;
             lastStatusChange: Date;
-            notes: string | null;
         }>;
     };
     RoomType: {
@@ -163,9 +163,7 @@ export declare const roomResolvers: {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            status: import(".prisma/client").$Enums.ReservationStatus;
             roomTypeId: string;
-            actualRoomId: string | null;
             guestEmail: string;
             guestFirstName: string;
             guestLastName: string;
@@ -173,13 +171,15 @@ export declare const roomResolvers: {
             checkIn: Date;
             checkOut: Date;
             guests: number;
+            specialRequests: string | null;
+            status: import(".prisma/client").$Enums.ReservationStatus;
+            notes: string | null;
+            actualRoomId: string | null;
             totalPrice: number;
             paymentStatus: import(".prisma/client").$Enums.PaymentStatus;
             paymentIntentId: string | null;
-            specialRequests: string | null;
             accessToken: string;
             lastStatusChange: Date;
-            notes: string | null;
         }[]>;
     };
     ActualRoom: {
@@ -199,9 +199,7 @@ export declare const roomResolvers: {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            status: import(".prisma/client").$Enums.ReservationStatus;
             roomTypeId: string;
-            actualRoomId: string | null;
             guestEmail: string;
             guestFirstName: string;
             guestLastName: string;
@@ -209,13 +207,15 @@ export declare const roomResolvers: {
             checkIn: Date;
             checkOut: Date;
             guests: number;
+            specialRequests: string | null;
+            status: import(".prisma/client").$Enums.ReservationStatus;
+            notes: string | null;
+            actualRoomId: string | null;
             totalPrice: number;
             paymentStatus: import(".prisma/client").$Enums.PaymentStatus;
             paymentIntentId: string | null;
-            specialRequests: string | null;
             accessToken: string;
             lastStatusChange: Date;
-            notes: string | null;
         }[]>;
     };
 };

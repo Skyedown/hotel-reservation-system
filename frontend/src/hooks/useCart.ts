@@ -22,8 +22,8 @@ export function useCart() {
           item.checkOut
         );
         setCartItems(validItems);
-      } catch (error) {
-        console.error('Error parsing stored cart items:', error);
+      } catch {
+        // Invalid cart data, clear storage
         localStorage.removeItem('hotelCartItems');
       }
     }
@@ -102,6 +102,9 @@ export function useCart() {
   }, [updateCartItem]);
 
   const updateRoomCount = useCallback((roomTypeId: string, checkIn: string, newRoomCount: number) => {
+    // Only update if newRoomCount is positive (negative values should trigger removal in the calling component)
+    if (newRoomCount <= 0) return;
+    
     setCartItems(prevItems => 
       prevItems.map(item => {
         if (item?.roomType?.id === roomTypeId && item.checkIn === checkIn) {

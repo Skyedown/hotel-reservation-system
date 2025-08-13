@@ -88,14 +88,9 @@ export default function RoomAssignmentModal({ isOpen, onClose, reservations, onS
           });
           
           const result = await response.json();
-          console.log(`Backend response for ${reservation.roomType?.name}:`, result);
           
           if (result.data) {
             const availableRooms = result.data.availableActualRooms || [];
-            const allRooms = result.data.roomType?.rooms || [];
-            
-            console.log(`All rooms for ${reservation.roomType?.name}:`, allRooms);
-            console.log(`Available rooms for ${reservation.roomType?.name}:`, availableRooms);
             
             roomsByReservation[reservation.id] = availableRooms;
           } else {

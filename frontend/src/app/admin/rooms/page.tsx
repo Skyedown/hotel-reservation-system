@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import DOMPurify from 'dompurify';
 import { useQuery, useMutation } from '@apollo/client';
 import { GET_ALL_ROOM_TYPES, GET_ALL_ACTUAL_ROOMS } from '@/lib/graphql/queries';
 import { CREATE_ROOM_TYPE, UPDATE_ROOM_TYPE, DELETE_ROOM_TYPE, CREATE_ACTUAL_ROOM, UPDATE_ACTUAL_ROOM, DELETE_ACTUAL_ROOM } from '@/lib/graphql/mutations';
-import { getAdminToken, removeAdminToken, formatCurrency, getErrorMessage } from '@/lib/utils';
+import { getAdminToken, removeAdminToken, formatCurrency, getErrorMessage, sanitizeString, sanitizeTextarea, sanitizeNumber } from '@/lib/utils';
 import { Admin, RoomType, ActualRoom } from '@/lib/types';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -429,10 +430,11 @@ export default function AdminRooms() {
 
   // Helper functions for amenities and images
   const addAmenity = () => {
-    if (amenityInput.trim() && !roomTypeFormData.amenities.includes(amenityInput.trim())) {
+    const sanitizedAmenity = DOMPurify.sanitize(sanitizeString(amenityInput));
+    if (sanitizedAmenity && !roomTypeFormData.amenities.includes(sanitizedAmenity)) {
       setRoomTypeFormData(prev => ({
         ...prev,
-        amenities: [...prev.amenities, amenityInput.trim()]
+        amenities: [...prev.amenities, sanitizedAmenity]
       }));
       setAmenityInput('');
     }
@@ -446,12 +448,20 @@ export default function AdminRooms() {
   };
 
   const addImage = () => {
-    if (imageInput.trim() && !roomTypeFormData.images.includes(imageInput.trim())) {
-      setRoomTypeFormData(prev => ({
-        ...prev,
-        images: [...prev.images, imageInput.trim()]
-      }));
-      setImageInput('');
+    const trimmedInput = imageInput.trim();
+    // Validate URL format and sanitize
+    try {
+      new URL(trimmedInput);
+      const sanitizedUrl = DOMPurify.sanitize(trimmedInput);
+      if (sanitizedUrl && !roomTypeFormData.images.includes(sanitizedUrl)) {
+        setRoomTypeFormData(prev => ({
+          ...prev,
+          images: [...prev.images, sanitizedUrl]
+        }));
+        setImageInput('');
+      }
+    } catch {
+      alert('Prosím zadajte platnú URL adresu obrázka');
     }
   };
 
@@ -465,17 +475,37 @@ export default function AdminRooms() {
   // Save handlers
   const handleSaveRoomType = async () => {
     try {
+      // Sanitize input data before sending to server
+      const sanitizedData = {
+        name: DOMPurify.sanitize(sanitizeString(roomTypeFormData.name)),
+        description: DOMPurify.sanitize(sanitizeTextarea(roomTypeFormData.description)),
+        price: sanitizeNumber(roomTypeFormData.price, 0, 10000),
+        capacity: Math.floor(sanitizeNumber(roomTypeFormData.capacity, 1, 10)),
+        amenities: roomTypeFormData.amenities.map(amenity => 
+          DOMPurify.sanitize(sanitizeString(amenity))
+        ).filter(amenity => amenity.length > 0),
+        images: roomTypeFormData.images.filter(url => {
+          try {
+            new URL(url);
+            return true;
+          } catch {
+            return false;
+          }
+        }),
+        isActive: Boolean(roomTypeFormData.isActive),
+      };
+
       if (isCreatingRoomType) {
         await createRoomType({
           variables: {
-            input: roomTypeFormData
+            input: sanitizedData
           }
         });
       } else if (editingRoomType) {
         await updateRoomType({
           variables: {
             id: editingRoomType.id,
-            input: roomTypeFormData
+            input: sanitizedData
           }
         });
       }
@@ -490,17 +520,27 @@ export default function AdminRooms() {
 
   const handleSaveActualRoom = async () => {
     try {
+      // Sanitize input data before sending to server
+      const sanitizedData = {
+        roomNumber: DOMPurify.sanitize(sanitizeString(actualRoomFormData.roomNumber))
+          .replace(/[^0-9A-Za-z\-]/g, '').trim().slice(0, 10),
+        roomTypeId: actualRoomFormData.roomTypeId, // UUID validated server-side
+        isAvailable: Boolean(actualRoomFormData.isAvailable),
+        isUnderMaintenance: Boolean(actualRoomFormData.isUnderMaintenance),
+        maintenanceNotes: DOMPurify.sanitize(sanitizeTextarea(actualRoomFormData.maintenanceNotes || '')),
+      };
+
       if (isCreatingActualRoom) {
         await createActualRoom({
           variables: {
-            input: actualRoomFormData
+            input: sanitizedData
           }
         });
       } else if (editingActualRoom) {
         await updateActualRoom({
           variables: {
             id: editingActualRoom.id,
-            input: actualRoomFormData
+            input: sanitizedData
           }
         });
       }

@@ -3,19 +3,40 @@ services:
     image: postgres:15
     restart: always
     environment:
+      POSTGRES_LOG_MIN_DURATION_STATEMENT: 1000
+      POSTGRES_LOG_CHECKPOINTS: 'on'
+      POSTGRES_LOG_DISK_USAGE: 'on'
       POSTGRES_DB: hotel_system
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secure_hotel_db_password_2024}
       # Security: Disable unnecessary features
       POSTGRES_HOST_AUTH_METHOD: md5
-      POSTGRES_INITDB_ARGS: "--auth-host=md5 --auth-local=md5"
+      POSTGRES_INITDB_ARGS: '--auth-host=md5 --auth-local=md5'
     # SECURITY: Remove port exposure - database should only be accessible within Docker network
     # ports:
     #   - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data:Z
+    # Resource limits including memory (helps control overall resource usage)
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 512M
+    # Shared memory size for PostgreSQL
+    shm_size: 256mb
+    # Temporary filesystem limits
+    tmpfs:
+      - /tmp:size=512M,noexec,nosuid,nodev
+    # Set ulimits to help control file system usage
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+      fsize: 10737418240 # 10GB in bytes
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -38,14 +59,14 @@ services:
       - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
     command: redis-server /usr/local/etc/redis/redis.conf --requirepass ${REDIS_PASSWORD:-secure_redis_password_2024}
     healthcheck:
-      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      test: ['CMD', 'redis-cli', '--raw', 'incr', 'ping']
       interval: 10s
       timeout: 3s
       retries: 5
     networks:
       - hotel_network
     # Security: Run as non-root user
-    user: "999:999"
+    user: '999:999'
 
   backend:
     build:
@@ -63,7 +84,7 @@ services:
       REDIS_PORT: 6379
       REDIS_PASSWORD: ${REDIS_PASSWORD:-secure_redis_password_2024}
     ports:
-      - "4000:4000"
+      - '4000:4000'
     depends_on:
       postgres:
         condition: service_healthy
@@ -85,7 +106,7 @@ services:
       NEXT_PUBLIC_GRAPHQL_URL: https://peterlehocky.site/graphql
       NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY:-pk_test_your_stripe_publishable_key}
     ports:
-      - "3000:3000"
+      - '3000:3000'
     depends_on:
       - backend
     networks:
@@ -93,6 +114,11 @@ services:
 
 volumes:
   postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ${PWD}/postgres_data
+      o: bind
   redis_data:
 
 networks:

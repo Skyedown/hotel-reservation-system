@@ -1,5 +1,15 @@
 import { Context } from '../context';
 import { GraphQLError } from 'graphql';
+import { ValidationMiddleware } from '../validation/middleware';
+import { SecurityLoggerService } from '../services/securityLogger';
+import { 
+  createRoomTypeSchema, 
+  updateRoomTypeSchema,
+  createActualRoomSchema,
+  updateActualRoomSchema,
+  searchRoomsSchema 
+} from '../validation/schemas';
+import { FunctionRateLimit } from '../services/rateLimitService';
 
 export const roomResolvers = {
   Query: {
@@ -209,16 +219,54 @@ export const roomResolvers = {
 
   Mutation: {
     // Room Type Management
-    createRoomType: async (_: any, { input }: any, { admin, prisma }: Context) => {
-      if (!admin || admin.role !== 'ADMIN') {
-        throw new GraphQLError('Admin access required', {
-          extensions: { code: 'UNAUTHENTICATED' }
-        });
-      }
+    createRoomType: async (_: any, { input }: any, context: Context) => {
+      const { admin, prisma } = context;
       
-      return prisma.roomType.create({
-        data: input
+      // Authorization check
+      ValidationMiddleware.requireAdmin(context);
+      
+      // Rate limiting for admin operations
+      await ValidationMiddleware.checkRateLimit(
+        () => FunctionRateLimit.checkAdminOperation(admin!.id, 'create_room_type'),
+        context,
+        'create_room_type'
+      );
+      
+      // Validate and sanitize input
+      const validatedInput = ValidationMiddleware.validateInput(
+        createRoomTypeSchema, 
+        input, 
+        context
+      );
+      
+      // Log admin action
+      ValidationMiddleware.logAdminAction(
+        context,
+        'CREATE_ROOM_TYPE',
+        'room_type',
+        undefined,
+        validatedInput
+      );
+      
+      const roomType = await prisma.roomType.create({
+        data: validatedInput
       });
+      
+      // Log success
+      SecurityLoggerService.logSuccess({
+        event: 'ROOM_TYPE_CREATED',
+        severity: 'LOW',
+        ip: context.req?.ip,
+        userAgent: context.req?.headers['user-agent'],
+        adminId: admin!.id,
+        details: {
+          roomTypeId: roomType.id,
+          name: roomType.name,
+          timestamp: new Date().toISOString(),
+        },
+      });
+      
+      return roomType;
     },
     
     updateRoomType: async (_: any, { id, input }: any, { admin, prisma }: Context) => {

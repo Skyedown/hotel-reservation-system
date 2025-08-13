@@ -22,19 +22,6 @@ export declare const resolvers: {
             };
         }>;
         reservation: (_: any, { accessToken }: any, { prisma }: import("../context").Context) => Promise<{
-            payments: {
-                id: string;
-                createdAt: Date;
-                updatedAt: Date;
-                status: import(".prisma/client").$Enums.PaymentStatus;
-                reservationId: string;
-                amount: number;
-                currency: string;
-                stripePaymentIntentId: string;
-                failureReason: string | null;
-                refundAmount: number | null;
-                webhookEventId: string | null;
-            }[];
             roomType: {
                 name: string;
                 id: string;
@@ -57,13 +44,24 @@ export declare const resolvers: {
                 isUnderMaintenance: boolean;
                 maintenanceNotes: string | null;
             };
+            payments: {
+                id: string;
+                createdAt: Date;
+                updatedAt: Date;
+                status: import(".prisma/client").$Enums.PaymentStatus;
+                reservationId: string;
+                amount: number;
+                currency: string;
+                stripePaymentIntentId: string;
+                failureReason: string | null;
+                refundAmount: number | null;
+                webhookEventId: string | null;
+            }[];
         } & {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            status: import(".prisma/client").$Enums.ReservationStatus;
             roomTypeId: string;
-            actualRoomId: string | null;
             guestEmail: string;
             guestFirstName: string;
             guestLastName: string;
@@ -71,13 +69,15 @@ export declare const resolvers: {
             checkIn: Date;
             checkOut: Date;
             guests: number;
+            specialRequests: string | null;
+            status: import(".prisma/client").$Enums.ReservationStatus;
+            notes: string | null;
+            actualRoomId: string | null;
             totalPrice: number;
             paymentStatus: import(".prisma/client").$Enums.PaymentStatus;
             paymentIntentId: string | null;
-            specialRequests: string | null;
             accessToken: string;
             lastStatusChange: Date;
-            notes: string | null;
         }>;
         roomTypes: (_: any, __: any, { prisma }: import("../context").Context) => Promise<{
             name: string;
@@ -167,19 +167,6 @@ export declare const resolvers: {
             updatedAt: Date;
         }>;
         allReservations: (_: any, __: any, { admin, prisma }: import("../context").Context) => Promise<({
-            payments: {
-                id: string;
-                createdAt: Date;
-                updatedAt: Date;
-                status: import(".prisma/client").$Enums.PaymentStatus;
-                reservationId: string;
-                amount: number;
-                currency: string;
-                stripePaymentIntentId: string;
-                failureReason: string | null;
-                refundAmount: number | null;
-                webhookEventId: string | null;
-            }[];
             roomType: {
                 name: string;
                 id: string;
@@ -202,13 +189,24 @@ export declare const resolvers: {
                 isUnderMaintenance: boolean;
                 maintenanceNotes: string | null;
             };
+            payments: {
+                id: string;
+                createdAt: Date;
+                updatedAt: Date;
+                status: import(".prisma/client").$Enums.PaymentStatus;
+                reservationId: string;
+                amount: number;
+                currency: string;
+                stripePaymentIntentId: string;
+                failureReason: string | null;
+                refundAmount: number | null;
+                webhookEventId: string | null;
+            }[];
         } & {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            status: import(".prisma/client").$Enums.ReservationStatus;
             roomTypeId: string;
-            actualRoomId: string | null;
             guestEmail: string;
             guestFirstName: string;
             guestLastName: string;
@@ -216,28 +214,17 @@ export declare const resolvers: {
             checkIn: Date;
             checkOut: Date;
             guests: number;
+            specialRequests: string | null;
+            status: import(".prisma/client").$Enums.ReservationStatus;
+            notes: string | null;
+            actualRoomId: string | null;
             totalPrice: number;
             paymentStatus: import(".prisma/client").$Enums.PaymentStatus;
             paymentIntentId: string | null;
-            specialRequests: string | null;
             accessToken: string;
             lastStatusChange: Date;
-            notes: string | null;
         })[]>;
         reservationById: (_: any, { id }: any, { admin, prisma }: import("../context").Context) => Promise<{
-            payments: {
-                id: string;
-                createdAt: Date;
-                updatedAt: Date;
-                status: import(".prisma/client").$Enums.PaymentStatus;
-                reservationId: string;
-                amount: number;
-                currency: string;
-                stripePaymentIntentId: string;
-                failureReason: string | null;
-                refundAmount: number | null;
-                webhookEventId: string | null;
-            }[];
             roomType: {
                 name: string;
                 id: string;
@@ -260,13 +247,24 @@ export declare const resolvers: {
                 isUnderMaintenance: boolean;
                 maintenanceNotes: string | null;
             };
+            payments: {
+                id: string;
+                createdAt: Date;
+                updatedAt: Date;
+                status: import(".prisma/client").$Enums.PaymentStatus;
+                reservationId: string;
+                amount: number;
+                currency: string;
+                stripePaymentIntentId: string;
+                failureReason: string | null;
+                refundAmount: number | null;
+                webhookEventId: string | null;
+            }[];
         } & {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            status: import(".prisma/client").$Enums.ReservationStatus;
             roomTypeId: string;
-            actualRoomId: string | null;
             guestEmail: string;
             guestFirstName: string;
             guestLastName: string;
@@ -274,13 +272,15 @@ export declare const resolvers: {
             checkIn: Date;
             checkOut: Date;
             guests: number;
+            specialRequests: string | null;
+            status: import(".prisma/client").$Enums.ReservationStatus;
+            notes: string | null;
+            actualRoomId: string | null;
             totalPrice: number;
             paymentStatus: import(".prisma/client").$Enums.PaymentStatus;
             paymentIntentId: string | null;
-            specialRequests: string | null;
             accessToken: string;
             lastStatusChange: Date;
-            notes: string | null;
         }>;
     };
     Mutation: {
@@ -293,19 +293,6 @@ export declare const resolvers: {
         }>;
         createMultiRoomReservation: (_: any, { input }: any, { prisma }: import("../context").Context) => Promise<any[]>;
         createReservation: (_: any, { input }: any, { prisma }: import("../context").Context) => Promise<{
-            payments: {
-                id: string;
-                createdAt: Date;
-                updatedAt: Date;
-                status: import(".prisma/client").$Enums.PaymentStatus;
-                reservationId: string;
-                amount: number;
-                currency: string;
-                stripePaymentIntentId: string;
-                failureReason: string | null;
-                refundAmount: number | null;
-                webhookEventId: string | null;
-            }[];
             roomType: {
                 name: string;
                 id: string;
@@ -328,13 +315,24 @@ export declare const resolvers: {
                 isUnderMaintenance: boolean;
                 maintenanceNotes: string | null;
             };
+            payments: {
+                id: string;
+                createdAt: Date;
+                updatedAt: Date;
+                status: import(".prisma/client").$Enums.PaymentStatus;
+                reservationId: string;
+                amount: number;
+                currency: string;
+                stripePaymentIntentId: string;
+                failureReason: string | null;
+                refundAmount: number | null;
+                webhookEventId: string | null;
+            }[];
         } & {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            status: import(".prisma/client").$Enums.ReservationStatus;
             roomTypeId: string;
-            actualRoomId: string | null;
             guestEmail: string;
             guestFirstName: string;
             guestLastName: string;
@@ -342,28 +340,17 @@ export declare const resolvers: {
             checkIn: Date;
             checkOut: Date;
             guests: number;
+            specialRequests: string | null;
+            status: import(".prisma/client").$Enums.ReservationStatus;
+            notes: string | null;
+            actualRoomId: string | null;
             totalPrice: number;
             paymentStatus: import(".prisma/client").$Enums.PaymentStatus;
             paymentIntentId: string | null;
-            specialRequests: string | null;
             accessToken: string;
             lastStatusChange: Date;
-            notes: string | null;
         }>;
         cancelReservation: (_: any, { accessToken }: any, { prisma }: import("../context").Context) => Promise<{
-            payments: {
-                id: string;
-                createdAt: Date;
-                updatedAt: Date;
-                status: import(".prisma/client").$Enums.PaymentStatus;
-                reservationId: string;
-                amount: number;
-                currency: string;
-                stripePaymentIntentId: string;
-                failureReason: string | null;
-                refundAmount: number | null;
-                webhookEventId: string | null;
-            }[];
             roomType: {
                 name: string;
                 id: string;
@@ -386,13 +373,24 @@ export declare const resolvers: {
                 isUnderMaintenance: boolean;
                 maintenanceNotes: string | null;
             };
+            payments: {
+                id: string;
+                createdAt: Date;
+                updatedAt: Date;
+                status: import(".prisma/client").$Enums.PaymentStatus;
+                reservationId: string;
+                amount: number;
+                currency: string;
+                stripePaymentIntentId: string;
+                failureReason: string | null;
+                refundAmount: number | null;
+                webhookEventId: string | null;
+            }[];
         } & {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            status: import(".prisma/client").$Enums.ReservationStatus;
             roomTypeId: string;
-            actualRoomId: string | null;
             guestEmail: string;
             guestFirstName: string;
             guestLastName: string;
@@ -400,15 +398,17 @@ export declare const resolvers: {
             checkIn: Date;
             checkOut: Date;
             guests: number;
+            specialRequests: string | null;
+            status: import(".prisma/client").$Enums.ReservationStatus;
+            notes: string | null;
+            actualRoomId: string | null;
             totalPrice: number;
             paymentStatus: import(".prisma/client").$Enums.PaymentStatus;
             paymentIntentId: string | null;
-            specialRequests: string | null;
             accessToken: string;
             lastStatusChange: Date;
-            notes: string | null;
         }>;
-        createRoomType: (_: any, { input }: any, { admin, prisma }: import("../context").Context) => Promise<{
+        createRoomType: (_: any, { input }: any, context: import("../context").Context) => Promise<{
             name: string;
             id: string;
             createdAt: Date;
@@ -458,9 +458,7 @@ export declare const resolvers: {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            status: import(".prisma/client").$Enums.ReservationStatus;
             roomTypeId: string;
-            actualRoomId: string | null;
             guestEmail: string;
             guestFirstName: string;
             guestLastName: string;
@@ -468,42 +466,27 @@ export declare const resolvers: {
             checkIn: Date;
             checkOut: Date;
             guests: number;
+            specialRequests: string | null;
+            status: import(".prisma/client").$Enums.ReservationStatus;
+            notes: string | null;
+            actualRoomId: string | null;
             totalPrice: number;
             paymentStatus: import(".prisma/client").$Enums.PaymentStatus;
             paymentIntentId: string | null;
-            specialRequests: string | null;
             accessToken: string;
             lastStatusChange: Date;
-            notes: string | null;
         }>;
-        adminLogin: (_: any, { input }: any, { prisma }: import("../context").Context) => Promise<{
+        adminLogin: (_: any, { input }: any, context: import("../context").Context) => Promise<{
             token: string;
             admin: {
                 id: string;
                 email: string;
-                password: string;
                 firstName: string;
                 lastName: string;
-                phoneNumber: string | null;
                 role: import(".prisma/client").$Enums.AdminRole;
-                createdAt: Date;
-                updatedAt: Date;
             };
         }>;
         updateReservationStatus: (_: any, { id, status }: any, { admin, prisma }: import("../context").Context) => Promise<{
-            payments: {
-                id: string;
-                createdAt: Date;
-                updatedAt: Date;
-                status: import(".prisma/client").$Enums.PaymentStatus;
-                reservationId: string;
-                amount: number;
-                currency: string;
-                stripePaymentIntentId: string;
-                failureReason: string | null;
-                refundAmount: number | null;
-                webhookEventId: string | null;
-            }[];
             roomType: {
                 name: string;
                 id: string;
@@ -526,13 +509,24 @@ export declare const resolvers: {
                 isUnderMaintenance: boolean;
                 maintenanceNotes: string | null;
             };
+            payments: {
+                id: string;
+                createdAt: Date;
+                updatedAt: Date;
+                status: import(".prisma/client").$Enums.PaymentStatus;
+                reservationId: string;
+                amount: number;
+                currency: string;
+                stripePaymentIntentId: string;
+                failureReason: string | null;
+                refundAmount: number | null;
+                webhookEventId: string | null;
+            }[];
         } & {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            status: import(".prisma/client").$Enums.ReservationStatus;
             roomTypeId: string;
-            actualRoomId: string | null;
             guestEmail: string;
             guestFirstName: string;
             guestLastName: string;
@@ -540,13 +534,15 @@ export declare const resolvers: {
             checkIn: Date;
             checkOut: Date;
             guests: number;
+            specialRequests: string | null;
+            status: import(".prisma/client").$Enums.ReservationStatus;
+            notes: string | null;
+            actualRoomId: string | null;
             totalPrice: number;
             paymentStatus: import(".prisma/client").$Enums.PaymentStatus;
             paymentIntentId: string | null;
-            specialRequests: string | null;
             accessToken: string;
             lastStatusChange: Date;
-            notes: string | null;
         }>;
     };
     Admin: {};
@@ -565,9 +561,7 @@ export declare const resolvers: {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            status: import(".prisma/client").$Enums.ReservationStatus;
             roomTypeId: string;
-            actualRoomId: string | null;
             guestEmail: string;
             guestFirstName: string;
             guestLastName: string;
@@ -575,13 +569,15 @@ export declare const resolvers: {
             checkIn: Date;
             checkOut: Date;
             guests: number;
+            specialRequests: string | null;
+            status: import(".prisma/client").$Enums.ReservationStatus;
+            notes: string | null;
+            actualRoomId: string | null;
             totalPrice: number;
             paymentStatus: import(".prisma/client").$Enums.PaymentStatus;
             paymentIntentId: string | null;
-            specialRequests: string | null;
             accessToken: string;
             lastStatusChange: Date;
-            notes: string | null;
         }[]>;
     };
     ActualRoom: {
@@ -601,9 +597,7 @@ export declare const resolvers: {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            status: import(".prisma/client").$Enums.ReservationStatus;
             roomTypeId: string;
-            actualRoomId: string | null;
             guestEmail: string;
             guestFirstName: string;
             guestLastName: string;
@@ -611,13 +605,15 @@ export declare const resolvers: {
             checkIn: Date;
             checkOut: Date;
             guests: number;
+            specialRequests: string | null;
+            status: import(".prisma/client").$Enums.ReservationStatus;
+            notes: string | null;
+            actualRoomId: string | null;
             totalPrice: number;
             paymentStatus: import(".prisma/client").$Enums.PaymentStatus;
             paymentIntentId: string | null;
-            specialRequests: string | null;
             accessToken: string;
             lastStatusChange: Date;
-            notes: string | null;
         }[]>;
     };
     Reservation: {
@@ -685,9 +681,7 @@ export declare const resolvers: {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            status: import(".prisma/client").$Enums.ReservationStatus;
             roomTypeId: string;
-            actualRoomId: string | null;
             guestEmail: string;
             guestFirstName: string;
             guestLastName: string;
@@ -695,13 +689,15 @@ export declare const resolvers: {
             checkIn: Date;
             checkOut: Date;
             guests: number;
+            specialRequests: string | null;
+            status: import(".prisma/client").$Enums.ReservationStatus;
+            notes: string | null;
+            actualRoomId: string | null;
             totalPrice: number;
             paymentStatus: import(".prisma/client").$Enums.PaymentStatus;
             paymentIntentId: string | null;
-            specialRequests: string | null;
             accessToken: string;
             lastStatusChange: Date;
-            notes: string | null;
         }>;
     };
 };

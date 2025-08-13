@@ -36,16 +36,13 @@ export default function Contact() {
   const onSubmit = async (data: ContactFormData) => {
     setIsLoading(true);
     
-    // Sanitize form data
-    const sanitizedData = {
-      name: sanitizeString(data.name),
-      email: sanitizeEmail(data.email),
-      subject: sanitizeString(data.subject),
-      message: sanitizeTextarea(data.message),
-    };
+    // Sanitize form data (in production, this would be sent to API)
+    sanitizeString(data.name);
+    sanitizeEmail(data.email);
+    sanitizeString(data.subject);
+    sanitizeTextarea(data.message);
     
-    // Simulate form submission (in production, this would send sanitizedData to API)
-    console.log('Contact form submitted:', sanitizedData);
+    // Simulate form submission
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     setIsSubmitted(true);
