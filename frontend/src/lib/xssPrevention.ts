@@ -429,7 +429,8 @@ export function handleCSPViolation(event: SecurityPolicyViolationEvent): void {
   // In production, report to security monitoring
   if (process.env.NODE_ENV === 'production') {
     // Report to backend security endpoint
-    fetch('/api/security/csp-violations', {
+    const backendUrl = 'https://api.peterlehocky.site';
+    fetch(`${backendUrl}/api/security/csp-violations`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
