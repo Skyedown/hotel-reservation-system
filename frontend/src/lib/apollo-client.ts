@@ -2,8 +2,15 @@ import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import { getAdminToken } from './utils';
 
+const getGraphQLURL = () => {
+  if (process.env.NODE_ENV === 'production') {
+    return 'https://api.peterlehocky.site/graphql';
+  }
+  return process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:4000/graphql';
+};
+
 const httpLink = createHttpLink({
-  uri: process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:4000/graphql',
+  uri: getGraphQLURL(),
 });
 
 const authLink = setContext((_, { headers }) => {

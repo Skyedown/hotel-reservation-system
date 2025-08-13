@@ -105,24 +105,24 @@ export function initializeTrustedTypes(): void {
 
     console.log(`✅ Trusted Types policy initialized successfully (${isDevelopment ? 'development' : 'production'} mode)`);
     
-    // In development, also create a permissive default policy for eval() and other dynamic content
-    if (isDevelopment && !window.trustedTypes.defaultPolicy) {
+    // Create a permissive default policy for Next.js compatibility
+    if (!window.trustedTypes.defaultPolicy) {
       try {
         window.trustedTypes.createPolicy('default', {
           createHTML: (input: string) => {
-            console.debug('Default policy: Creating HTML for development');
-            return input; // Allow all HTML in development
+            if (isDevelopment) console.debug('Default policy: Creating HTML');
+            return input; // Allow all HTML for Next.js compatibility
           },
           createScript: (input: string) => {
-            console.debug('Default policy: Creating script for development');
-            return input; // Allow all scripts in development (including eval)
+            if (isDevelopment) console.debug('Default policy: Creating script');
+            return input; // Allow all scripts for Next.js compatibility
           },
           createScriptURL: (input: string) => {
-            console.debug('Default policy: Creating script URL for development');
-            return input; // Allow all script URLs in development
+            if (isDevelopment) console.debug('Default policy: Creating script URL');
+            return input; // Allow all script URLs for Next.js compatibility
           }
         });
-        console.log('✅ Default Trusted Types policy created for development mode');
+        console.log(`✅ Default Trusted Types policy created for ${isDevelopment ? 'development' : 'production'} mode`);
       } catch (error) {
         console.warn('Could not create default policy:', error);
       }
